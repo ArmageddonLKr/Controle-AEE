@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Aluno {
+  id                  String        @id @default(cuid())
+  nome                String
+  dataNascimento      DateTime
+  turma               String?
+  escola              String?
+  responsavel         String?
+  telefone            String?
+  necessidadeEspecial String?
+  observacoes         String?
+  ativo               Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  atendimentos        Atendimento[]
+  evolucoes           Evolucao[]
+}
+
+model Atendimento {
+  id          String   @id @default(cuid())
+  alunoId     String
+  aluno       Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  data        DateTime
+  tipo        String
+  duracaoMin  Int      @default(50)
+  objetivo    String?
+  observacoes String?
+  presente    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Evolucao {
+  id        String   @id @default(cuid())
+  alunoId   String
+  aluno     Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  data      DateTime
+  periodo   String?
+  descricao String
+  areas     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
