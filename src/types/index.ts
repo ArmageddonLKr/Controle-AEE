@@ -1,33 +1,52 @@
-import type { Aluno, Atendimento, Evolucao } from "@prisma/client";
+export interface Responsavel {
+  nome: string;
+  parentesco: string;
+  telefone: string;
+  email?: string;
+  responsavelLegal: boolean;
+}
 
-export type { Aluno, Atendimento, Evolucao };
+export interface Crianca {
+  id: string;
+  nome: string;
+  apelido?: string;
+  foto?: string;
+  dataNascimento: string;
+  genero: "M" | "F";
+  status: "ativo" | "inativo" | "espera";
+  escola: string;
+  turma: string;
+  serie: string;
+  turno: "manhã" | "tarde" | "integral";
+  professorRegente?: string;
+  diagnosticos: string[];
+  cids: string[];
+  dataInicioAcompanhamento: string;
+  responsaveis: Responsavel[];
+  observacoesImportantes?: string;
+  medicamentos?: string[];
+  alergias?: string[];
+}
 
-export type TipoAtendimento =
-  | "individual"
-  | "grupo"
-  | "avaliacao"
-  | "reuniao_familia";
+export interface Sessao {
+  id: string;
+  criancaId: string;
+  data: string;
+  hora: string;
+  duracao: number;
+  tipo: "individual" | "grupo" | "familiar" | "orientacao";
+  presente: boolean;
+  motivoFalta?: string;
+  anotacoes: string;
+  evolucaoObservada?: string;
+}
 
-export const TIPOS_ATENDIMENTO: Record<TipoAtendimento, string> = {
-  individual: "Individual",
-  grupo: "Grupo",
-  avaliacao: "Avaliação",
-  reuniao_familia: "Reunião com Família",
-};
-
-export const NECESSIDADES_ESPECIAIS = [
-  "TEA",
-  "TDAH",
-  "Deficiência Visual",
-  "Deficiência Auditiva",
-  "Deficiência Física",
-  "Deficiência Intelectual",
-  "Síndrome de Down",
-  "Dislexia",
-  "Outro",
-] as const;
-
-export type AlunoComAtendimentos = Aluno & {
-  atendimentos: Atendimento[];
-  _count?: { atendimentos: number };
-};
+export interface Evolucao {
+  id: string;
+  criancaId: string;
+  data: string;
+  periodo: string;
+  descricao: string;
+  areas: string[];
+  proximosPassos?: string;
+}

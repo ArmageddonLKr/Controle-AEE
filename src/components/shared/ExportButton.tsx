@@ -1,67 +1,86 @@
 "use client";
 
-import { Download, FileText, Sheet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { exportToPDF, type ExportColumn } from "@/lib/utils/export-pdf";
-import { exportToXLSX, type XLSXColumn } from "@/lib/utils/export-xlsx";
+import { useState } from "react";
+import { Download, FileText, FileSpreadsheet, ChevronDown } from "lucide-react";
+
+interface OpcaoExport {
+  label: string;
+  formato: "pdf" | "word";
+  onExportar: () => void | Promise<void>;
+}
 
 interface ExportButtonProps {
-  title: string;
-  subtitle?: string;
-  columns: ExportColumn[];
-  data: Record<string, unknown>[];
-  filename: string;
+  opcoes: OpcaoExport[];
   disabled?: boolean;
 }
 
-export function ExportButton({
-  title,
-  subtitle = "",
-  columns,
-  data,
-  filename,
-  disabled = false,
-}: ExportButtonProps) {
-  const handlePDF = () => {
-    exportToPDF(title, subtitle, columns, data, filename);
-  };
+export function ExportButton({ opcoes, disabled = false }: ExportButtonProps) {
+  const [aberto, setAberto] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const handleXLSX = () => {
-    const xlsxCols: XLSXColumn[] = columns.map((c) => ({
-      header: c.header,
-      key: c.dataKey,
-    }));
-    exportToXLSX(title, xlsxCols, data, filename);
-  };
+  async function handleExportar(opcao: OpcaoExport) {
+    setLoading(opcao.formato);
+    setAberto(false);
+    try {
+      await opcao.onExportar();
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  const estaCarregando = loading !== null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" disabled={disabled || data.length === 0}>
-          <Download className="h-4 w-4" />
-          Exportar
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Formato de exportação</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handlePDF}>
-          <FileText className="h-4 w-4 mr-2 text-red-500" />
-          Exportar PDF
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleXLSX}>
-          <Sheet className="h-4 w-4 mr-2 text-emerald-600" />
-          Exportar Excel
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="relative">
+      <button
+        onClick={() => !disabled && !estaCarregando && setAberto(!aberto)}
+        disabled={disabled || estaCarregando}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          backgroundColor: "var(--accent-primary)",
+          color: "white",
+        }}
+      >
+        <Download className="h-4 w-4" />
+        {estaCarregando ? "Gerando..." : "Exportar"}
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${aberto ? "rotate-180" : ""}`} />
+      </button>
+
+      {aberto && (
+        <>
+          {/* Overlay para fechar */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setAberto(false)}
+          />
+          <div
+            className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg z-20 overflow-hidden"
+            style={{
+              backgroundColor: "var(--bg-card)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            {opcoes.map((opcao) => (
+              <button
+                key={opcao.formato}
+                onClick={() => handleExportar(opcao)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm transition-all hover:opacity-80"
+                style={{
+                  color: "var(--text-primary)",
+                  borderBottom: "1px solid var(--border)",
+                }}
+              >
+                {opcao.formato === "pdf" ? (
+                  <FileText className="h-4 w-4 flex-shrink-0" style={{ color: "#E05555" }} />
+                ) : (
+                  <FileSpreadsheet className="h-4 w-4 flex-shrink-0" style={{ color: "var(--accent-primary)" }} />
+                )}
+                {opcao.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

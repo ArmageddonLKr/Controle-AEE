@@ -1,11 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    serverActions: {
-      allowedOrigins: ["localhost:3000"],
-    },
+  output: "export",
+  basePath: "/Controle-AEE",
+  images: {
+    unoptimized: true,
   },
+  trailingSlash: true,
 };
 
 export default nextConfig;

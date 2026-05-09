@@ -5,38 +5,50 @@ import {
   isBefore,
   startOfDay,
 } from "date-fns";
-import type { Aluno } from "@/types";
+import type { Crianca } from "@/types";
 
-export function getUpcomingBirthdays(alunos: Aluno[], daysAhead = 7) {
-  const today = startOfDay(new Date());
-  const year = today.getFullYear();
+export function getAniversariosProximos(criancas: Crianca[], diasAdiante = 7) {
+  const hoje = startOfDay(new Date());
+  const ano = hoje.getFullYear();
 
-  return alunos
-    .filter((a) => a.ativo && a.dataNascimento != null)
-    .map((a) => {
-      const bday = new Date(a.dataNascimento);
-      let nextBday = setYear(
-        new Date(bday.getFullYear(), bday.getMonth(), bday.getDate()),
-        year
+  return criancas
+    .filter((c) => c.status === "ativo" && c.dataNascimento)
+    .map((c) => {
+      const nasc = new Date(c.dataNascimento);
+      let proximoAniv = setYear(
+        new Date(nasc.getFullYear(), nasc.getMonth(), nasc.getDate()),
+        ano
       );
-      if (isBefore(nextBday, today)) {
-        nextBday = setYear(nextBday, year + 1);
+      if (isBefore(proximoAniv, hoje)) {
+        proximoAniv = setYear(proximoAniv, ano + 1);
       }
-      const daysUntil = differenceInDays(nextBday, today);
-      return { aluno: a, daysUntil, nextBday };
+      const diasAte = differenceInDays(proximoAniv, hoje);
+      return { crianca: c, diasAte, proximoAniv };
     })
-    .filter(({ daysUntil }) => daysUntil >= 0 && daysUntil <= daysAhead)
-    .sort((a, b) => a.daysUntil - b.daysUntil);
+    .filter(({ diasAte }) => diasAte >= 0 && diasAte <= diasAdiante)
+    .sort((a, b) => a.diasAte - b.diasAte);
 }
 
-export function calcularIdade(dataNascimento: Date): number {
+export function calcularIdade(dataNascimento: string): number {
   return differenceInYears(new Date(), new Date(dataNascimento));
 }
 
-export function isAniversarioHoje(dataNascimento: Date): boolean {
-  const today = new Date();
-  const bday = new Date(dataNascimento);
-  return (
-    bday.getMonth() === today.getMonth() && bday.getDate() === today.getDate()
+export function isAniversarioHoje(dataNascimento: string): boolean {
+  const hoje = new Date();
+  const nasc = new Date(dataNascimento);
+  return nasc.getMonth() === hoje.getMonth() && nasc.getDate() === hoje.getDate();
+}
+
+export function diasAteAniversario(dataNascimento: string): number {
+  const hoje = startOfDay(new Date());
+  const ano = hoje.getFullYear();
+  const nasc = new Date(dataNascimento);
+  let proximoAniv = setYear(
+    new Date(nasc.getFullYear(), nasc.getMonth(), nasc.getDate()),
+    ano
   );
+  if (isBefore(proximoAniv, hoje)) {
+    proximoAniv = setYear(proximoAniv, ano + 1);
+  }
+  return differenceInDays(proximoAniv, hoje);
 }

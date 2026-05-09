@@ -1,21 +1,28 @@
 import { ReactNode } from "react";
 
 interface PageHeaderProps {
-  title: string;
-  description?: string;
-  action?: ReactNode;
+  titulo: string;
+  descricao?: string;
+  acao?: ReactNode;
 }
 
-export function PageHeader({ title, description, action }: PageHeaderProps) {
+export function PageHeader({ titulo, descricao, acao }: PageHeaderProps) {
   return (
     <div className="flex items-start justify-between mb-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-        {description && (
-          <p className="text-sm text-slate-500 mt-1">{description}</p>
+        <h1
+          className="text-2xl font-bold leading-tight"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {titulo}
+        </h1>
+        {descricao && (
+          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+            {descricao}
+          </p>
         )}
       </div>
-      {action && <div className="flex-shrink-0">{action}</div>}
+      {acao && <div className="flex-shrink-0">{acao}</div>}
     </div>
   );
 }
