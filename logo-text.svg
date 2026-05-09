@@ -1,17 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
-  <!-- Ícone (versão compacta) -->
-  <circle cx="24" cy="20" r="10" fill="#E0F4F8" opacity="0.6"/>
-  <circle cx="24" cy="14" r="4.5" fill="#4A9EBF"/>
-  <path d="M18 27 Q18 22 24 22 Q30 22 30 27 L30 31 Q30 32.5 28.5 32.5 L19.5 32.5 Q18 32.5 18 31 Z" fill="#4A9EBF"/>
-  <path d="M31.5 17 C33 15.5 35.5 16.5 35.5 19 C35.5 20.5 34 22 32.5 23 L31 24" stroke="#6EC6CA" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-  <path d="M22.5 11 C22.5 9.8 21 8.5 20.2 9.8 C19.4 11 20.2 12.2 22.5 13.5 C24.8 12.2 25.6 11 24.8 9.8 C24 8.5 22.5 9.8 22.5 11 Z" fill="#E05555" opacity="0.8"/>
-
-  <!-- Linha separadora vertical -->
-  <line x1="46" y1="8" x2="46" y2="40" stroke="#D1E3F0" stroke-width="1"/>
-
-  <!-- Texto "Controle" -->
-  <text x="54" y="22" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="400" fill="#4A6080" letter-spacing="0.3">Controle</text>
-
-  <!-- Texto "AEE" -->
-  <text x="54" y="37" font-family="Plus Jakarta Sans, sans-serif" font-size="14" font-weight="800" fill="#1E3A5F" letter-spacing="1">AEE</text>
+<svg width="160" height="40" viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A9EBF"/>
+      <stop offset="100%" stop-color="#6EC6CA"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="10" fill="url(#g)"/>
+  <text x="20" y="26" font-family="system-ui,sans-serif" font-weight="900" font-size="15" fill="white" text-anchor="middle" letter-spacing="1">AEE</text>
+  <text x="52" y="17" font-family="system-ui,sans-serif" font-weight="400" font-size="11" fill="#4A9EBF">Controle</text>
+  <text x="52" y="33" font-family="system-ui,sans-serif" font-weight="900" font-size="16" fill="#1E3A5F" letter-spacing="0.5">AEE</text>
 </svg>

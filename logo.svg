@@ -1,20 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-  <!-- Círculo de fundo suave -->
-  <circle cx="24" cy="24" r="22" fill="#E0F4F8" opacity="0.6"/>
-
-  <!-- Silhueta da criança (cabeça) -->
-  <circle cx="24" cy="14" r="5" fill="#4A9EBF"/>
-
-  <!-- Corpo da criança -->
-  <path d="M17 28 Q17 22 24 22 Q31 22 31 28 L31 34 Q31 36 29 36 L19 36 Q17 36 17 34 Z" fill="#4A9EBF"/>
-
-  <!-- Mão aberta / apoio (lado direito) -->
-  <path d="M33 20 C35 18 38 19 38 22 C38 24 36 26 34 27 L32 28" stroke="#6EC6CA" stroke-width="2" stroke-linecap="round" fill="none"/>
-  <path d="M36 18 C37.5 16.5 40 17.5 39.5 20" stroke="#6EC6CA" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-
-  <!-- Coração pequeno (símbolo de cuidado) -->
-  <path d="M22 10 C22 8.5 20 7 19 8.5 C18 10 19 11.5 22 13 C25 11.5 26 10 25 8.5 C24 7 22 8.5 22 10 Z" fill="#E05555" opacity="0.8"/>
-
-  <!-- Texto "AEE" integrado na base -->
-  <text x="24" y="44" font-family="Plus Jakarta Sans, sans-serif" font-size="7" font-weight="800" fill="#1E3A5F" text-anchor="middle" letter-spacing="1.5">AEE</text>
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A9EBF"/>
+      <stop offset="100%" stop-color="#6EC6CA"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="10" fill="url(#g)"/>
+  <text x="20" y="26" font-family="system-ui,sans-serif" font-weight="900" font-size="15" fill="white" text-anchor="middle" letter-spacing="1">AEE</text>
 </svg>
