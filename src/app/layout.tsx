@@ -1,29 +1,16 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Toaster } from "@/components/ui/toaster";
-import { TemaProvider } from "@/lib/theme";
-import { ClientInit } from "@/components/ClientInit";
+'use client';
+
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "@/styles/globals.css";
+import { useEffect, useState } from "react";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Controle AEE",
-  description: "Sistema de gestão para psicóloga do Atendimento Educacional Especializado",
-  manifest: "/Controle-AEE/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Controle AEE",
-  },
-  icons: {
-    icon: "/Controle-AEE/icons/icon-192.png",
-    apple: "/Controle-AEE/icons/icon-192.png",
-  },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#1E3A5F",
-  width: "device-width",
-  initialScale: 1,
+  description: "Sistema de controle e gestão de Atendimento Educacional Especializado",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -31,26 +18,29 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
+
+  if (!mounted) return null;
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body>
-        <TemaProvider>
-          <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg-primary)" }}>
-            <Sidebar />
-            <main
-              className="flex-1 min-h-screen"
-              style={{
-                marginLeft: "240px",
-                padding: "2rem",
-                backgroundColor: "var(--bg-primary)",
-              }}
-            >
-              <div className="max-w-7xl mx-auto">{children}</div>
-            </main>
-          </div>
-          <Toaster />
-          <ClientInit />
-        </TemaProvider>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      <body className={inter.className}>
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
+          {children}
+        </div>
       </body>
     </html>
   );
