@@ -45,10 +45,12 @@ export const storage = {
     alunos = alunos.filter(a => a.id !== id);
     localStorage.setItem(ALUNOS_KEY, JSON.stringify(alunos));
     
+    // Deletar atendimentos da criança
     let atendimentos = storage.getAtendimentos();
     atendimentos = atendimentos.filter(a => a.aluno_id !== id);
     localStorage.setItem(ATENDIMENTOS_KEY, JSON.stringify(atendimentos));
     
+    // Deletar relatórios da criança
     let relatorios = storage.getRelatorios();
     relatorios = relatorios.filter(r => r.aluno_id !== id);
     localStorage.setItem(RELATORIOS_KEY, JSON.stringify(relatorios));
