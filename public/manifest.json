@@ -1,25 +1,17 @@
 {
   "name": "Controle AEE",
   "short_name": "AEE",
-  "description": "Sistema de gestão para psicóloga do AEE",
+  "description": "Sistema de controle e gestão de Atendimento Educacional Especializado",
   "start_url": "/Controle-AEE/",
   "scope": "/Controle-AEE/",
   "display": "standalone",
-  "background_color": "#F0F7FF",
-  "theme_color": "#1E3A5F",
-  "orientation": "any",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/Controle-AEE/icons/icon-192.png",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/Controle-AEE/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
