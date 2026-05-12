@@ -3,7 +3,7 @@
 import { Menu, X, ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 
-export default function RelatoriosPage() {
+export default function AtendimentosPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -13,7 +13,7 @@ export default function RelatoriosPage() {
           <a href="/Controle-AEE/" className="p-1">
             <ChevronLeft size={24} />
           </a>
-          <h1 className="text-lg font-bold">Relatórios</h1>
+          <h1 className="text-lg font-bold">Atendimentos</h1>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -38,10 +38,10 @@ export default function RelatoriosPage() {
           <a href="/Controle-AEE/criancas" className="block px-4 py-2 rounded-lg hover:bg-muted">
             👧 Crianças
           </a>
-          <a href="/Controle-AEE/atendimentos" className="block px-4 py-2 rounded-lg hover:bg-muted">
+          <a href="/Controle-AEE/atendimentos" className="block px-4 py-2 rounded-lg bg-accent text-accent-foreground">
             📝 Atendimentos
           </a>
-          <a href="/Controle-AEE/relatorios" className="block px-4 py-2 rounded-lg bg-accent text-accent-foreground">
+          <a href="/Controle-AEE/relatorios" className="block px-4 py-2 rounded-lg hover:bg-muted">
             📄 Relatórios
           </a>
         </nav>
@@ -52,7 +52,7 @@ export default function RelatoriosPage() {
       )}
 
       <main className="flex-1 p-4 md:p-6">
-        <h2 className="text-3xl font-bold mb-4">Relatórios</h2>
+        <h2 className="text-3xl font-bold mb-4">Atendimentos</h2>
         <div className="bg-card border border-border rounded-lg p-6 text-center">
           <p className="text-muted-foreground">Em desenvolvimento...</p>
         </div>
