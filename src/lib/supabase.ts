@@ -1,11 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+// src/lib/supabase.ts
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ??
-  "https://wmkvxkeymhcguznfnebe.supabase.co";
+// Pega a URL e a Chave de API do arquivo .env.local
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indta3Z4a2V5bWhjZ3V6bmZuZWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Njc0MjUsImV4cCI6MjA5NTM0MzQyNX0.Kr5qSl--i1JfIUtWrXIS4ySCihPsSDNzcmetbwwTIyM";
-
+// Cria e exporta o cliente Supabase
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Uma flag para sabermos no código se o Supabase está conectado
+export const isSupabaseConnected = true;
