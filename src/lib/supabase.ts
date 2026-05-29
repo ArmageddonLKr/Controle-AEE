@@ -1,17 +1,11 @@
-// SUPABASE — PRONTO PARA CONEXÃO
-// Quando Rafaela criar a conta no Supabase:
-// 1. Criar projeto em supabase.com
-// 2. Copiar URL e anon key do projeto
-// 3. Criar arquivo .env.local com:
-//    NEXT_PUBLIC_SUPABASE_URL=sua_url_aqui
-//    NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_aqui
-// 4. Descomentar o código abaixo e remover o export null
-// 5. Rodar npm run build e fazer push para main
+import { createClient } from "@supabase/supabase-js";
 
-// import { createClient } from '@supabase/supabase-js';
-// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-// export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??
+  "https://wmkvxkeymhcguznfnebe.supabase.co";
 
-export const supabase = null;
-export const isSupabaseConnected = false;
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indta3Z4a2V5bWhjZ3V6bmZuZWJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Njc0MjUsImV4cCI6MjA5NTM0MzQyNX0.Kr5qSl--i1JfIUtWrXIS4ySCihPsSDNzcmetbwwTIyM";
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);

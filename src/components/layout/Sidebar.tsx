@@ -112,24 +112,13 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Indicador de dados mock */}
-      <div className="px-4 pb-2">
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium"
-          style={{ backgroundColor: "rgba(240, 165, 0, 0.15)", color: "#F0A500" }}
-        >
-          <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-          Dados de exemplo
-        </div>
-      </div>
-
       {/* Rodapé com toggle de tema */}
       <div
         className="px-5 py-4 flex items-center justify-between"
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
       >
         <p className="text-xs" style={{ color: "rgba(168, 196, 216, 0.5)" }}>
-          v1.0 · Fase Visual
+          v1.0
         </p>
         <button
           onClick={alternarTema}

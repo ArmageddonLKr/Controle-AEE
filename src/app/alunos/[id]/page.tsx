@@ -1,11 +1,10 @@
-import { criancas } from "@/lib/mock-data";
 import { AlunoPerfilClient } from "./AlunoPerfilClient";
 
 export function generateStaticParams() {
-  return criancas.map((c) => ({ id: c.id }));
+  return [];
 }
 
-export default async function PerfilCriancaPage({
+export default async function AlunoPerfilPage({
   params,
 }: {
   params: Promise<{ id: string }>;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { criancas, sessoes } from "@/lib/mock-data";
+import { useCriancas, useTodasSessoes } from "@/hooks/useAlunos";
 import { isAniversarioHoje, diasAteAniversario } from "@/lib/utils/birthday";
 import {
   format,
@@ -17,26 +17,6 @@ import {
   isToday,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-// Retorna o nome do aluno dado seu ID
-function getNomeCrianca(id: string): string {
-  const c = criancas.find((c) => c.id === id);
-  return c ? (c.apelido ?? c.nome.split(" ")[0]) : "—";
-}
-
-// Retorna as sessões de um dia específico
-function getSessoesDoDia(dia: Date) {
-  const iso = format(dia, "yyyy-MM-dd");
-  return sessoes.filter((s) => s.data === iso);
-}
-
-// Retorna crianças que fazem aniversário num dia específico
-function getAniversariosDoDia(dia: Date) {
-  return criancas.filter((c) => {
-    const nasc = new Date(c.dataNascimento + "T00:00:00");
-    return nasc.getMonth() === dia.getMonth() && nasc.getDate() === dia.getDate();
-  });
-}
 
 // Gera cor por tipo de sessão
 function corTipo(tipo: string) {
@@ -61,6 +41,27 @@ function labelTipo(tipo: string) {
 }
 
 export default function CalendarioPage() {
+  const { criancas, loading: loadingC } = useCriancas();
+  const { sessoes, loading: loadingS } = useTodasSessoes();
+  const loading = loadingC || loadingS;
+
+  const getNomeCrianca = (id: string): string => {
+    const c = criancas.find((x) => x.id === id);
+    return c ? (c.apelido ?? c.nome.split(" ")[0]) : "—";
+  };
+
+  const getSessoesDoDia = (dia: Date) => {
+    const iso = format(dia, "yyyy-MM-dd");
+    return sessoes.filter((s) => s.data === iso);
+  };
+
+  const getAniversariosDoDia = (dia: Date) => {
+    return criancas.filter((c) => {
+      const nasc = new Date(c.dataNascimento + "T00:00:00");
+      return nasc.getMonth() === dia.getMonth() && nasc.getDate() === dia.getDate();
+    });
+  };
+
   const [mesAtual, setMesAtual] = useState<Date>(new Date());
   const [diaSelecionado, setDiaSelecionado] = useState<Date | null>(null);
 

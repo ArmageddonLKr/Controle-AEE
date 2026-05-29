@@ -1,262 +1,238 @@
 "use client";
 
 import { useMemo } from "react";
-import { Users, CalendarCheck, Gift, TrendingUp, AlertTriangle, Check, X } from "lucide-react";
-import { format, differenceInYears } from "date-fns";
+import { Users, Calendar, Star, Clock } from "lucide-react";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Link from "next/link";
 import { StatCard } from "@/components/shared/StatCard";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { BirthdayAlert } from "@/components/shared/BirthdayAlert";
+import { useCriancas, useDashboard } from "@/hooks/useAlunos";
 import { getGreeting } from "@/lib/utils/greeting";
-import {
-  criancas,
-  sessoes,
-  getSessoesDoMes,
-  criancasSemSessaoRecente,
-} from "@/lib/mock-data";
-import { isAniversarioHoje, diasAteAniversario } from "@/lib/utils/birthday";
+import { getAniversariosProximos, isAniversarioHoje } from "@/lib/utils/birthday";
 
-function getAniversariosProximos() {
-  return criancas
-    .filter((c) => c.status === "ativo")
-    .map((c) => ({
-      crianca: c,
-      diasAte: diasAteAniversario(c.dataNascimento),
-    }))
-    .filter(({ diasAte }) => diasAte >= 0 && diasAte <= 7)
-    .sort((a, b) => a.diasAte - b.diasAte);
-}
+const TIPO_LABEL: Record<string, string> = {
+  individual: "Individual",
+  grupo: "Grupo",
+  familiar: "Familiar",
+  orientacao: "Orientação",
+};
 
-function corAvatar(nome: string): string {
-  const cores = ["#4A9EBF", "#6EC6CA", "#2ECC8E", "#A78BFA", "#F0A500", "#E05555", "#3B82F6", "#EC4899"];
-  let soma = 0;
-  for (const c of nome) soma += c.charCodeAt(0);
-  return cores[soma % cores.length];
-}
+export default function Dashboard() {
+  const { criancas, ativas, emEspera, loading: loadingC } = useCriancas();
+  const { sessoesRecentes, sessoesMes, loading: loadingS } = useDashboard();
 
-export default function DashboardPage() {
-  const hoje = new Date();
-  const saudacao = getGreeting("Rafaela Dias");
-  const dataFormatada = format(hoje, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const aniversariosProximos = useMemo(() => getAniversariosProximos(criancas, 7), [criancas]);
+  const aniversariosHoje = useMemo(() => criancas.filter((c) => isAniversarioHoje(c.dataNascimento)), [criancas]);
 
-  const criancasAtivas = criancas.filter((c) => c.status === "ativo").length;
-  const sessoesDoMes = getSessoesDoMes().length;
-  const aniversariosProximos = getAniversariosProximos();
-  const totalSessoes = sessoes.length;
+  const criancasSemSessao = useMemo(() => {
+    const limite = new Date();
+    limite.setDate(limite.getDate() - 15);
+    return ativas.filter((c) => {
+      const sessoesC = sessoesRecentes.filter((s) => s.criancaId === c.id);
+      if (sessoesC.length === 0) return true;
+      return new Date(sessoesC[0].data) < limite;
+    });
+  }, [ativas, sessoesRecentes]);
 
-  const sessoesRecentes = [...sessoes]
-    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-    .slice(0, 6);
+  const dataHoje = format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const saudacao = getGreeting("Rafaela");
 
-  const semSessaoRecente = criancasSemSessaoRecente(15);
-
-  const aniversariosHoje = criancas.filter((c) => isAniversarioHoje(c.dataNascimento));
+  const loading = loadingC || loadingS;
 
   return (
-    <div>
-      {/* Banner de aniversário do dia */}
+    <div className="flex flex-col min-h-screen p-4 md:p-8 gap-6">
+      {/* Cabeçalho */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
+          {saudacao}
+        </h1>
+        <p className="text-sm mt-1 capitalize" style={{ color: "var(--text-muted)" }}>
+          {dataHoje}
+        </p>
+      </div>
+
+      {/* Alerta de aniversário hoje */}
       {aniversariosHoje.length > 0 && (
         <div
-          className="mb-6 rounded-xl p-4 flex items-center gap-3"
+          className="rounded-xl p-4 flex items-center gap-3"
           style={{
-            background: "linear-gradient(135deg, #F0A500 0%, #FFD166 100%)",
-            color: "#1A2B45",
+            background: "linear-gradient(135deg, rgba(240,165,0,0.12), rgba(240,165,0,0.04))",
+            border: "1px solid rgba(240,165,0,0.4)",
           }}
         >
           <span className="text-3xl">🎉</span>
           <div>
-            <p className="font-bold text-lg">
-              Aniversário hoje! 🎂{" "}
-              {aniversariosHoje.map((c) => c.nome.split(" ")[0]).join(" e ")}
-            </p>
-            <p className="text-sm opacity-80">
+            <p className="font-bold" style={{ color: "#B87800" }}>
               {aniversariosHoje.length === 1
-                ? `${aniversariosHoje[0].nome.split(" ")[0]} faz ${differenceInYears(hoje, new Date(aniversariosHoje[0].dataNascimento))} anos hoje!`
-                : `${aniversariosHoje.length} crianças fazem aniversário hoje!`}
+                ? `Hoje é aniversário de ${aniversariosHoje[0].nome.split(" ")[0]}!`
+                : `${aniversariosHoje.length} aniversários hoje!`}
+            </p>
+            <p className="text-sm" style={{ color: "#F0A500" }}>
+              {aniversariosHoje.map((c) => c.nome.split(" ")[0]).join(", ")} 🎂
             </p>
           </div>
         </div>
       )}
-
-      {/* Saudação */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
-          {saudacao}
-        </h1>
-        <p className="capitalize" style={{ color: "var(--text-secondary)" }}>
-          {dataFormatada}
-        </p>
-      </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          titulo="Crianças ativas"
-          valor={criancasAtivas}
-          icone={<Users className="h-5 w-5" />}
-          cor="azul"
-        />
-        <StatCard
-          titulo="Sessões este mês"
-          valor={sessoesDoMes}
-          icone={<CalendarCheck className="h-5 w-5" />}
-          cor="verde"
-        />
-        <StatCard
-          titulo="Aniversários (7 dias)"
-          valor={aniversariosProximos.length}
-          icone={<Gift className="h-5 w-5" />}
-          cor="ambar"
-        />
-        <StatCard
-          titulo="Total de sessões"
-          valor={totalSessoes}
-          icone={<TrendingUp className="h-5 w-5" />}
-          cor="roxo"
-        />
-      </div>
-
-      {/* Alerta de crianças sem sessão */}
-      {semSessaoRecente.length > 0 && (
-        <div
-          className="mb-6 rounded-xl p-4 flex items-start gap-3"
-          style={{ backgroundColor: "rgba(240, 165, 0, 0.1)", border: "1px solid rgba(240, 165, 0, 0.3)" }}
-        >
-          <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: "#F0A500" }} />
-          <div>
-            <p className="font-semibold text-sm" style={{ color: "#B87800" }}>
-              Crianças sem sessão há mais de 15 dias
-            </p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
-              {semSessaoRecente.map((c) => c.nome.split(" ")[0]).join(", ")}
-            </p>
-          </div>
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[0,1,2,3].map((i) => (
+            <div key={i} className="card-aee p-5 h-28 animate-pulse" style={{ background: "var(--bg-card)" }} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            titulo="Crianças ativas"
+            valor={ativas.length}
+            icone={<Users size={22} />}
+            descricao={`${emEspera.length} em espera`}
+            cor="azul"
+          />
+          <StatCard
+            titulo="Sessões este mês"
+            valor={sessoesMes.length}
+            icone={<Calendar size={22} />}
+            descricao={`${sessoesMes.filter((s) => s.presente).length} com presença`}
+            cor="verde"
+          />
+          <StatCard
+            titulo="Aniversários (7 dias)"
+            valor={aniversariosProximos.length}
+            icone={<Star size={22} />}
+            descricao={aniversariosHoje.length > 0 ? `${aniversariosHoje.length} hoje 🎉` : "Nenhum hoje"}
+            cor="ambar"
+          />
+          <StatCard
+            titulo="Total de crianças"
+            valor={criancas.length}
+            icone={<Clock size={22} />}
+            descricao={`${criancas.filter((c) => c.status === "inativo").length} inativas`}
+            cor="roxo"
+          />
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Aniversários próximos */}
-        <div className="lg:col-span-1">
-          <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
-            Aniversários Próximos
-          </h2>
-          {aniversariosProximos.length === 0 ? (
+      {/* Grade inferior */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
+          <BirthdayAlert criancas={criancas} />
+
+          {criancasSemSessao.length > 0 && (
             <div
-              className="rounded-xl p-6 text-center text-sm"
-              style={{
-                backgroundColor: "var(--bg-card)",
-                border: "1px solid var(--border)",
-                color: "var(--text-muted)",
-              }}
+              className="rounded-xl p-4"
+              style={{ background: "rgba(224, 85, 85, 0.06)", border: "1px solid rgba(224, 85, 85, 0.25)" }}
             >
-              Nenhum aniversário nos próximos 7 dias.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {aniversariosProximos.map(({ crianca, diasAte }) => (
-                <div
-                  key={crianca.id}
-                  className="flex items-center gap-3 p-3 rounded-xl"
-                  style={{
-                    backgroundColor: "var(--bg-card)",
-                    border: diasAte === 0 ? "1px solid #F0A500" : "1px solid var(--border)",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                  }}
-                >
-                  <div
-                    className="flex items-center justify-center rounded-full text-sm font-bold text-white flex-shrink-0"
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      backgroundColor: corAvatar(crianca.nome),
-                    }}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">⚠️</span>
+                <h3 className="font-semibold text-sm" style={{ color: "#E05555" }}>
+                  Sem sessão há mais de 15 dias ({criancasSemSessao.length})
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {criancasSemSessao.slice(0, 4).map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/alunos/perfil?id=${c.id}`}
+                    className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity"
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                   >
-                    {crianca.nome.split(" ").slice(0, 2).map((p) => p[0]).join("")}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
-                      {crianca.nome.split(" ")[0]}
-                    </p>
-                    <p className="text-xs" style={{ color: diasAte === 0 ? "#F0A500" : "var(--text-secondary)" }}>
-                      {diasAte === 0 ? "Hoje! 🎂" : `Em ${diasAte} dia${diasAte > 1 ? "s" : ""}`}
-                    </p>
-                  </div>
-                  <span className="text-xl">🎂</span>
-                </div>
-              ))}
+                    <div
+                      className="h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                      style={{ background: "rgba(224,85,85,0.12)", color: "#E05555" }}
+                    >
+                      {c.nome.charAt(0)}
+                    </div>
+                    <span style={{ color: "var(--text-primary)" }}>{c.nome.split(" ")[0]}</span>
+                    <span className="ml-auto text-xs" style={{ color: "var(--text-muted)" }}>
+                      {c.diagnosticos[0] ?? ""}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Estado vazio do dashboard */}
+          {!loading && criancas.length === 0 && (
+            <div
+              className="rounded-xl p-8 text-center"
+              style={{ border: "2px dashed var(--border)", background: "var(--bg-card)" }}
+            >
+              <p className="text-4xl mb-3">👶</p>
+              <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+                Nenhuma criança cadastrada ainda
+              </p>
+              <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
+                Cadastre a primeira criança para começar.
+              </p>
+              <Link
+                href="/alunos"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold"
+                style={{ background: "var(--accent-primary)", color: "#fff" }}
+              >
+                Ir para Crianças
+              </Link>
             </div>
           )}
         </div>
 
         {/* Sessões recentes */}
-        <div className="lg:col-span-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
-            Sessões Recentes
-          </h2>
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{
-              backgroundColor: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-            }}
-          >
-            {sessoesRecentes.map((sessao, idx) => {
-              const crianca = criancas.find((c) => c.id === sessao.criancaId);
-              if (!crianca) return null;
-              const TIPOS: Record<string, string> = {
-                individual: "Individual",
-                grupo: "Grupo",
-                familiar: "Familiar",
-                orientacao: "Orientação",
-              };
-              return (
-                <div
-                  key={sessao.id}
-                  className="flex items-center justify-between px-4 py-3"
-                  style={{
-                    borderBottom: idx < sessoesRecentes.length - 1 ? "1px solid var(--border)" : "none",
-                  }}
-                >
-                  <div className="flex items-center gap-3">
+        <div className="card-aee p-5">
+          <h3 className="font-semibold text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+            Sessões recentes
+          </h3>
+          {loading ? (
+            <div className="space-y-3">
+              {[0,1,2].map((i) => (
+                <div key={i} className="h-12 rounded-lg animate-pulse" style={{ background: "var(--bg-primary)" }} />
+              ))}
+            </div>
+          ) : sessoesRecentes.length === 0 ? (
+            <div className="py-8 text-center" style={{ color: "var(--text-muted)" }}>
+              <p className="text-sm">Nenhuma sessão registrada ainda.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sessoesRecentes.map((sessao) => {
+                const crianca = criancas.find((c) => c.id === sessao.criancaId);
+                if (!crianca) return null;
+                return (
+                  <div
+                    key={sessao.id}
+                    className="flex items-center gap-3 pb-3"
+                    style={{ borderBottom: "1px solid var(--border)" }}
+                  >
                     <div
-                      className="flex items-center justify-center rounded-full text-xs font-bold text-white flex-shrink-0"
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        backgroundColor: corAvatar(crianca.nome),
-                      }}
+                      className="h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{ background: "var(--accent-light)", color: "var(--accent-primary)" }}
                     >
-                      {crianca.nome.split(" ").slice(0, 2).map((p) => p[0]).join("")}
+                      {crianca.nome.charAt(0)}
                     </div>
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                        {crianca.nome.split(" ").slice(0, 2).join(" ")}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {crianca.nome.split(" ")[0]} {crianca.nome.split(" ").slice(-1)[0]}
                       </p>
                       <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                        {format(new Date(sessao.data), "dd/MM/yyyy", { locale: ptBR })} · {sessao.duracao} min
+                        {format(new Date(sessao.data), "dd/MM/yyyy")} · {TIPO_LABEL[sessao.tipo]}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
                     <span
-                      className="text-xs px-2 py-0.5 rounded-full font-medium"
+                      className="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
                       style={{
-                        backgroundColor: "var(--accent-light)",
-                        color: "var(--accent-primary)",
+                        background: sessao.presente ? "rgba(46,204,142,0.12)" : "rgba(224,85,85,0.1)",
+                        color: sessao.presente ? "#2ECC8E" : "#E05555",
                       }}
                     >
-                      {TIPOS[sessao.tipo] ?? sessao.tipo}
+                      {sessao.presente ? "Presente" : "Falta"}
                     </span>
-                    {sessao.presente ? (
-                      <Check className="h-4 w-4" style={{ color: "var(--success)" }} />
-                    ) : (
-                      <X className="h-4 w-4" style={{ color: "var(--danger)" }} />
-                    )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
