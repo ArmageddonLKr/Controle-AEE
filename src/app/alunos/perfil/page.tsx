@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { AlunoPerfilClient } from "../[id]/AlunoPerfilClient";
+import { AlunoPerfilClient } from "./AlunoPerfilClient";
 import { Loader2 } from "lucide-react";
 
 function PerfilInner() {
