@@ -51,6 +51,12 @@ export const useSessoesByCriancaId = (criancaId: string | undefined) => {
     return { sessoes, loading: isLoading, isError };
 }
 
+// Hook para buscar todas as sessões (agora do mock)
+export const useTodasSessoes = () => {
+  const { data: sessoes = [], isLoading, isError } = useMockQuery<Sessao[]>(mockSessoes);
+  return { sessoes, loading: isLoading, isError };
+};
+
 // Hook para dados do dashboard (agora do mock)
 export const useDashboard = () => {
   const { data: sessoes = [], isLoading, isError } = useMockQuery<Sessao[]>(mockSessoes);

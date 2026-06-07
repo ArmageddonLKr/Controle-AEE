@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 import { useTema } from "@/lib/theme";
 
 const navItems = [
-  { href: "/", label: "Início", icone: LayoutDashboard },
-  { href: "/alunos", label: "Crianças", icone: Users },
-  { href: "/calendario", label: "Calendário", icone: Calendar },
-  { href: "/relatorios", label: "Relatórios", icone: BarChart3 },
+  { href: "/",              label: "Início",        icone: LayoutDashboard },
+  { href: "/alunos",        label: "Crianças",      icone: Users },
+  { href: "/calendario",    label: "Calendário",    icone: Calendar },
+  { href: "/relatorios",    label: "Relatórios",    icone: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icone: Settings },
 ];
 
@@ -33,7 +33,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full flex flex-col z-40 sidebar-aee"
+      className="hidden md:flex fixed left-0 top-0 h-full flex-col z-40 sidebar-aee"
       style={{ width: "240px" }}
     >
       {/* Logo */}
@@ -81,7 +81,7 @@ export function Sidebar() {
       </div>
 
       {/* Navegação */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1" role="navigation" aria-label="Menu principal">
         {navItems.map((item) => {
           const Icone = item.icone;
           const ativo = estaAtivo(item.href);
@@ -93,7 +93,7 @@ export function Sidebar() {
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 ativo
                   ? "text-white"
-                  : "text-slate-400 hover:text-white"
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
               )}
               style={
                 ativo
@@ -104,6 +104,7 @@ export function Sidebar() {
                     }
                   : {}
               }
+              aria-current={ativo ? "page" : undefined}
             >
               <Icone className="h-4 w-4 shrink-0" />
               {item.label}
@@ -125,6 +126,7 @@ export function Sidebar() {
           className="flex items-center justify-center rounded-lg p-2 transition-all duration-200 hover:bg-white/10"
           title={tema === "claro" ? "Ativar tema escuro" : "Ativar tema claro"}
           aria-label="Alternar tema"
+          style={{ minWidth: 36, minHeight: 36 }}
         >
           {tema === "claro" ? (
             <Moon className="h-4 w-4" style={{ color: "rgba(168, 196, 216, 0.7)" }} />

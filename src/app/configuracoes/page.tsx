@@ -9,9 +9,7 @@ export default function ConfiguracoesPage() {
   return (
     <div
       style={{
-        padding: "1.5rem",
         maxWidth: "720px",
-        margin: "0 auto",
         color: "var(--text-primary)",
         display: "flex",
         flexDirection: "column",

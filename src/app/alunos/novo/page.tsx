@@ -4,7 +4,6 @@
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,7 +33,7 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 export default function NovoAlunoPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { toast } = useToast();
   const { register, handleSubmit, formState: { errors }, control } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -44,26 +43,11 @@ export default function NovoAlunoPage() {
     },
   });
 
-  const onSubmit = async (data: FormData) => {
-    // Omitindo campos não-primitivos que não irão para o BD diretamente ainda
-    const { ...insertData } = data;
-
-    const { error } = await supabase.from('criancas').insert([insertData]);
-
-    if (error) {
-      console.error(error);
-      toast({
-        title: 'Erro ao cadastrar criança',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Criança cadastrada com sucesso!',
-      });
-      router.push('/alunos');
-      router.refresh(); // Força a atualização da página de alunos
-    }
+  const onSubmit = async (_data: FormData) => {
+    toast({
+      title: 'Funcionalidade em breve',
+      description: 'O cadastro de novas crianças estará disponível na próxima fase do sistema.',
+    });
   };
 
   return (
@@ -133,7 +117,7 @@ export default function NovoAlunoPage() {
         </div>
 
         <div className="space-y-4 border-t pt-6">
-            <h2 class="text-xl font-semibold">Informações Escolares</h2>
+            <h2 className="text-xl font-semibold">Informações Escolares</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* ESCOLA */}
               <div>
@@ -172,7 +156,7 @@ export default function NovoAlunoPage() {
         </div>
 
         <div className="space-y-4 border-t pt-6">
-            <h2 class="text-xl font-semibold">Informações Clínicas</h2>
+            <h2 className="text-xl font-semibold">Informações Clínicas</h2>
             {/* DIAGNÓSTICOS */}
             <div>
               <Label htmlFor="diagnosticos">Diagnósticos (separados por vírgula)</Label>

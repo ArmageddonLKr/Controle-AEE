@@ -49,7 +49,8 @@ function getIntervaloPreset(preset: string): { inicio: Date; fim: Date } {
 // ---------------------------------------------------------------------------
 export default function RelatoriosPage() {
   const { criancas, loading: loadingCriancas } = useCriancas();
-  const { sessoes, loading: loadingSessoes, erro } = useTodasSessoes();
+  const { sessoes, loading: loadingSessoes, isError } = useTodasSessoes();
+  const erro = isError ? 'Erro ao carregar sessões.' : null;
   const nomesPorId = useMemo(
     () => new Map(criancas.map((c) => [c.id, c.nome])),
     [criancas]
