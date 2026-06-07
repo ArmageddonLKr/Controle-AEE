@@ -132,14 +132,7 @@ export default function CalendarioPage() {
   const cabecalhosSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   return (
-    <div
-      style={{
-        padding: "1.5rem",
-        maxWidth: "1200px",
-        margin: "0 auto",
-        color: "var(--text-primary)",
-      }}
-    >
+    <div style={{ color: "var(--text-primary)" }}>
       {/* Cabeçalho da página */}
       <div style={{ marginBottom: "1.5rem" }}>
         <h1

@@ -1,61 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   /* Tema Claro */
-  --bg-primary: #F0F7FF;
-  --bg-card: #FFFFFF;
-  --bg-sidebar: #1E3A5F;
-  --text-primary: #1A2B45;
-  --text-secondary: #4A6080;
-  --text-muted: #8FA3BC;
-  --accent-primary: #4A9EBF;
-  --accent-secondary: #6EC6CA;
-  --accent-light: #E0F4F8;
-  --border: #D1E3F0;
-  --success: #2ECC8E;
-  --warning: #F0A500;
-  --danger: #E05555;
-  --radius: 0.75rem;
-  --radius-sm: 0.5rem;
+  --bg-primary:      #F0F7FF;
+  --bg-card:         #FFFFFF;
+  --bg-sidebar:      #1E3A5F;
+  --text-primary:    #1A2B45;
+  --text-secondary:  #4A6080;
+  --text-muted:      #8FA3BC;
+  --accent-primary:  #4A9EBF;
+  --accent-secondary:#6EC6CA;
+  --accent-light:    #E0F4F8;
+  --border:          #D1E3F0;
+  --success:         #2ECC8E;
+  --warning:         #F0A500;
+  --danger:          #E05555;
+  --radius:          0.75rem;
+  --radius-sm:       0.5rem;
 }
 
 .dark {
   /* Tema Escuro */
-  --bg-primary: #0D1B2A;
-  --bg-card: #1A2E45;
-  --bg-sidebar: #0A1520;
-  --text-primary: #E8F4FD;
-  --text-secondary: #A8C4D8;
-  --text-muted: #5A7A90;
-  --accent-primary: #64DFDF;
-  --accent-secondary: #A78BFA;
-  --accent-light: #1A3A4A;
-  --border: #1E3A55;
-  --success: #2ECC8E;
-  --warning: #F0A500;
-  --danger: #E05555;
+  --bg-primary:      #0D1B2A;
+  --bg-card:         #1A2E45;
+  --bg-sidebar:      #0A1520;
+  --text-primary:    #E8F4FD;
+  --text-secondary:  #A8C4D8;
+  --text-muted:      #5A7A90;
+  --accent-primary:  #64DFDF;
+  --accent-secondary:#A78BFA;
+  --accent-light:    #1A3A4A;
+  --border:          #1E3A55;
+  --success:         #2ECC8E;
+  --warning:         #F0A500;
+  --danger:          #E05555;
 }
 
-/* Estilo Geral */
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Espaço inferior no mobile para a barra de navegação */
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* ── Cards ── */
 .card-aee {
-    background-color: var(--bg-card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
-    transition: all 200ms ease;
+  background-color: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
+  transition: transform 200ms ease, box-shadow 200ms ease;
 }
 
 .card-aee:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
 }
+
+/* ── Sidebar ── */
+.sidebar-aee {
+  background-color: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Bottom Nav (mobile) ── */
+.bottom-nav-aee {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: var(--bg-sidebar);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: stretch;
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: rgba(168,196,216,0.6);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 150ms ease, background 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+
+.bottom-nav-item.ativo {
+  color: #6EC6CA;
+  background: rgba(74,158,191,0.15);
+}
+
+/* ── Badges de Status ── */
+.badge-ativo {
+  background-color: rgba(46,204,142,0.15);
+  color: #1a9965;
+  border: 1px solid rgba(46,204,142,0.35);
+}
+.dark .badge-ativo {
+  background-color: rgba(46,204,142,0.2);
+  color: #2ECC8E;
+}
+
+.badge-espera {
+  background-color: rgba(240,165,0,0.12);
+  color: #a07000;
+  border: 1px solid rgba(240,165,0,0.3);
+}
+.dark .badge-espera {
+  background-color: rgba(240,165,0,0.2);
+  color: #F0A500;
+}
+
+.badge-inativo {
+  background-color: rgba(143,163,188,0.15);
+  color: #5a6a80;
+  border: 1px solid rgba(143,163,188,0.3);
+}
+.dark .badge-inativo {
+  background-color: rgba(143,163,188,0.1);
+  color: #8FA3BC;
+}
+
+/* ── Animação de entrada (fade + slide-up) ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-slide-up {
+  animation: fadeSlideUp 300ms ease both;
+}
+
+/* ── Borda de aniversário animada ── */
+@keyframes pulseBorder {
+  0%, 100% { border-color: #F0A500; }
+  50%       { border-color: #FFD700; }
+}
+
+.birthday-border {
+  animation: pulseBorder 2s ease-in-out infinite;
+}
+
+/* ── Scrollbar fina e elegante ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
