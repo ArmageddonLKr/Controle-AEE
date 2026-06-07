@@ -6,6 +6,7 @@ import { Users, Calendar, Star, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/shared/StatCard";
 import { BirthdayAlert } from "@/components/shared/BirthdayAlert";
 import { getGreeting } from "@/lib/utils/greeting";

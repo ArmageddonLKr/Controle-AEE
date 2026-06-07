@@ -2,23 +2,21 @@
 // src/app/alunos/[id]/AlunoPerfilClient.tsx
 'use client';
 
-import { Crianca, Sessao, Evolucao } from '@/types';
+import { Crianca } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { notFound } from 'next/navigation';
 import { getSessoesByCriancaId, getEvolucoesByCriancaId } from '@/lib/mock-data';
 import { differenceInYears, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import SessoesList from '@/components/shared/SessoesList';
+import AddSessaoForm from '@/components/shared/AddSessaoForm';
 
 interface AlunoPerfilClientProps {
-  aluno: Crianca | undefined;
+  aluno: Crianca;
 }
 
 export default function AlunoPerfilClient({ aluno }: AlunoPerfilClientProps) {
-  if (!aluno) {
-    notFound();
-  }
 
   const idade = differenceInYears(new Date(), new Date(aluno.dataNascimento));
   const sessoes = getSessoesByCriancaId(aluno.id);

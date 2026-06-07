@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { AlunoCard } from '@/components/shared/AlunoCard';
 import type { Crianca } from '@/types';
 import { Search } from 'lucide-react';
-import { useAlunos } from '@/hooks/useAlunos'; // Hook para buscar dados do Supabase
+import { useCriancas } from '@/hooks/useAlunos';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 
@@ -17,14 +17,12 @@ const STATUS_OPTS = [
 ];
 
 export default function AlunosPage() {
-  // Busca os dados em tempo real do Supabase
-  const { data: criancas, isLoading, error } = useAlunos();
+  const { criancas, loading: isLoading, isError: error } = useCriancas();
   
   const [busca, setBusca] = useState('');
   const [statusFiltro, setStatusFiltro] = useState('todos');
 
   const criancasFiltradas = useMemo(() => {
-    if (!criancas) return [];
     return criancas.filter((c) => {
       const matchBusca = !busca || c.nome.toLowerCase().includes(busca.toLowerCase());
       const matchStatus = statusFiltro === 'todos' || c.status === statusFiltro;
@@ -48,7 +46,7 @@ export default function AlunosPage() {
         <div>
           <h1 className="text-2xl font-bold">Crianças</h1>
           <p className="text-sm mt-0.5 text-gray-500">
-            {`${criancasFiltradas.length} de ${criancas?.length || 0} criança(s) encontradas`}
+            {`${criancasFiltradas.length} de ${criancas.length} criança(s) encontradas`}
           </p>
         </div>
         <Link href="/alunos/novo" passHref>
