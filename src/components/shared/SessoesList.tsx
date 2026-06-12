@@ -1,14 +1,16 @@
 // src/components/shared/SessoesList.tsx
 'use client';
 
-import { Sessao } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CalendarOff, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getSessoesByCriancaId } from '@/lib/mock-data';
+import { useSessoesByCriancaId } from '@/hooks/useAlunos';
+import { removeSessao } from '@/lib/storage';
+import { useToast } from '@/hooks/use-toast';
 
 interface SessoesListProps {
   criancaId: string;
@@ -37,17 +39,27 @@ function EmptyState() {
       <CalendarOff className="mx-auto h-12 w-12 text-muted-foreground" />
       <h3 className="mt-4 text-lg font-semibold">Nenhuma sessão registrada</h3>
       <p className="mt-1 text-sm text-muted-foreground">
-        O histórico de sessões desta criança aparecerá aqui.
+        Use o botão &quot;Nova Sessão&quot; para registrar o primeiro atendimento.
       </p>
     </div>
   );
 }
 
 export default function SessoesList({ criancaId }: SessoesListProps) {
-  const sessoes: Sessao[] = getSessoesByCriancaId(criancaId);
+  const { sessoes, loading } = useSessoesByCriancaId(criancaId);
+  const { toast } = useToast();
+
+  if (loading) {
+    return <SessoesListSkeleton />;
+  }
 
   if (sessoes.length === 0) {
     return <EmptyState />;
+  }
+
+  function handleExcluir(id: string) {
+    removeSessao(id);
+    toast({ title: 'Sessão excluída', description: 'O registro foi removido.' });
   }
 
   const sessoesOrdenadas = [...sessoes].sort(
@@ -68,9 +80,24 @@ export default function SessoesList({ criancaId }: SessoesListProps) {
                   Tipo: <Badge variant="secondary">{sessao.tipo}</Badge> | Duração: {sessao.duracao} min
                 </p>
               </div>
-              <Badge variant={sessao.presente ? 'success' : 'destructive'}>
-                {sessao.presente ? 'Presente' : 'Faltou'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={sessao.presente ? 'success' : 'destructive'}>
+                  {sessao.presente ? 'Presente' : 'Faltou'}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  title="Excluir sessão"
+                  onClick={() => {
+                    if (window.confirm('Excluir este registro de sessão? Essa ação não pode ser desfeita.')) {
+                      handleExcluir(sessao.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             {sessao.anotacoes && (
               <p className="text-sm text-foreground/90">

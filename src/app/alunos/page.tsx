@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { AlunoCard } from '@/components/shared/AlunoCard';
-import { Search, Users } from 'lucide-react';
+import { Search, Users, UserPlus } from 'lucide-react';
 import { useCriancas } from '@/hooks/useAlunos';
 
 const STATUS_OPTS = [
@@ -26,8 +27,16 @@ function EstadoVazio() {
         Nenhuma criança cadastrada ainda
       </h2>
       <p className="text-sm max-w-xs" style={{ color: "var(--text-muted)" }}>
-        As crianças atendidas aparecerão aqui. O cadastro estará disponível em breve.
+        Cadastre a primeira criança para começar a registrar os atendimentos.
       </p>
+      <Link
+        href="/alunos/novo"
+        className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+        style={{ background: "var(--accent-primary)" }}
+      >
+        <UserPlus size={16} />
+        Cadastrar criança
+      </Link>
     </div>
   );
 }
@@ -84,6 +93,14 @@ export default function AlunosPage() {
             </p>
           )}
         </div>
+        <Link
+          href="/alunos/novo"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex-shrink-0"
+          style={{ background: "var(--accent-primary)" }}
+        >
+          <UserPlus size={16} />
+          <span className="hidden sm:inline">Nova Criança</span>
+        </Link>
       </div>
 
       {/* Busca + filtros — só exibe se houver crianças */}

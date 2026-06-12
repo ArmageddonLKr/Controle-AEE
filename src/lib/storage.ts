@@ -1,0 +1,134 @@
+// src/lib/storage.ts
+// Camada de persistência local — os dados ficam salvos no navegador (localStorage).
+// Funciona 100% offline e em site estático (GitHub Pages), sem precisar de servidor.
+// Quando o Supabase for conectado, esta camada pode ser substituída mantendo a mesma API.
+import type { Crianca, Sessao, Evolucao } from '@/types';
+
+const KEYS = {
+  criancas: 'controle-aee:criancas',
+  sessoes: 'controle-aee:sessoes',
+  evolucoes: 'controle-aee:evolucoes',
+} as const;
+
+interface Cache {
+  criancas: Crianca[];
+  sessoes: Sessao[];
+  evolucoes: Evolucao[];
+}
+
+// Cache em memória — garante referências estáveis para o useSyncExternalStore
+let cache: Cache | null = null;
+const listeners = new Set<() => void>();
+
+function lerTabela<T>(key: string): T[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(key);
+    const dados = raw ? JSON.parse(raw) : [];
+    return Array.isArray(dados) ? dados : [];
+  } catch {
+    return [];
+  }
+}
+
+function carregar(): Cache {
+  cache = {
+    criancas: lerTabela<Crianca>(KEYS.criancas),
+    sessoes: lerTabela<Sessao>(KEYS.sessoes),
+    evolucoes: lerTabela<Evolucao>(KEYS.evolucoes),
+  };
+  return cache;
+}
+
+function notificar() {
+  listeners.forEach((l) => l());
+}
+
+function gravar<K extends keyof Cache>(tabela: K, dados: Cache[K]) {
+  if (typeof window !== 'undefined') {
+    try {
+      window.localStorage.setItem(KEYS[tabela], JSON.stringify(dados));
+    } catch {
+      // Armazenamento cheio ou indisponível — mantém apenas em memória
+    }
+  }
+  cache = { ...(cache ?? carregar()), [tabela]: dados };
+  notificar();
+}
+
+// ── Assinatura para hooks reativos ──────────────────────────────────────────
+export function subscribe(callback: () => void): () => void {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+
+export function getCriancas(): Crianca[] {
+  return (cache ?? carregar()).criancas;
+}
+
+export function getSessoes(): Sessao[] {
+  return (cache ?? carregar()).sessoes;
+}
+
+export function getEvolucoes(): Evolucao[] {
+  return (cache ?? carregar()).evolucoes;
+}
+
+// ── Geração de IDs ──────────────────────────────────────────────────────────
+export function novoId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+// ── CRUD: Crianças ──────────────────────────────────────────────────────────
+export function addCrianca(dados: Omit<Crianca, 'id'>): Crianca {
+  const nova: Crianca = { ...dados, id: novoId() };
+  gravar('criancas', [...getCriancas(), nova]);
+  return nova;
+}
+
+export function updateCrianca(id: string, patch: Partial<Omit<Crianca, 'id'>>): void {
+  gravar(
+    'criancas',
+    getCriancas().map((c) => (c.id === id ? { ...c, ...patch } : c))
+  );
+}
+
+export function removeCrianca(id: string): void {
+  // Remove também as sessões e evoluções vinculadas à criança
+  gravar('sessoes', getSessoes().filter((s) => s.criancaId !== id));
+  gravar('evolucoes', getEvolucoes().filter((e) => e.criancaId !== id));
+  gravar('criancas', getCriancas().filter((c) => c.id !== id));
+}
+
+// ── CRUD: Sessões ───────────────────────────────────────────────────────────
+export function addSessao(dados: Omit<Sessao, 'id'>): Sessao {
+  const nova: Sessao = { ...dados, id: novoId() };
+  gravar('sessoes', [...getSessoes(), nova]);
+  return nova;
+}
+
+export function removeSessao(id: string): void {
+  gravar('sessoes', getSessoes().filter((s) => s.id !== id));
+}
+
+// ── CRUD: Evoluções ─────────────────────────────────────────────────────────
+export function addEvolucao(dados: Omit<Evolucao, 'id'>): Evolucao {
+  const nova: Evolucao = { ...dados, id: novoId() };
+  gravar('evolucoes', [...getEvolucoes(), nova]);
+  return nova;
+}
+
+export function removeEvolucao(id: string): void {
+  gravar('evolucoes', getEvolucoes().filter((e) => e.id !== id));
+}
+
+// ── Sincronização entre abas abertas do navegador ───────────────────────────
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key && (Object.values(KEYS) as string[]).includes(e.key)) {
+      carregar();
+      notificar();
+    }
+  });
+}

@@ -98,7 +98,7 @@ export function AlunoCard({ crianca, style }: AlunoCardProps) {
   const diagnosticoPrincipal = crianca.diagnosticos[0] ?? null;
 
   return (
-    <Link href={`/alunos/${crianca.id}`} className="block group">
+    <Link href={`/alunos/perfil/?id=${crianca.id}`} className="block group">
       <article
         className={`card-aee fade-slide-up relative flex flex-col gap-3 p-4 cursor-pointer${
           aniversarioProximo ? " birthday-border" : ""
