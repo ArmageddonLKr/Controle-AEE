@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useTema } from "@/lib/theme";
 import { Sun, Moon, Info, Database, Smartphone, Heart, Palette, RotateCcw, Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { isSupabaseConnected } from "@/lib/supabase";
-import { ativarSincronizacao, desativarSincronizacao, puxarDaNuvem } from "@/lib/sync";
+import { desativarSincronizacao, puxarDaNuvem } from "@/lib/sync";
 
-// Card de ativação da sincronização entre aparelhos
+// Card de status da sincronização entre aparelhos.
+// A ativação acontece sozinha pelo link especial (?ativar=...) — a Rafaela
+// não digita nada; este card só mostra o status e ações simples.
 function CartaoSincronizacao() {
   const [montado, setMontado] = useState(false);
   const [ativada, setAtivada] = useState(false);
-  const [codigo, setCodigo] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
 
@@ -18,18 +19,6 @@ function CartaoSincronizacao() {
     setMontado(true);
     setAtivada(isSupabaseConnected());
   }, []);
-
-  async function handleAtivar() {
-    setOcupado(true);
-    setMensagem(null);
-    const resultado = await ativarSincronizacao(codigo);
-    setMensagem({ tipo: resultado.ok ? "ok" : "erro", texto: resultado.mensagem });
-    if (resultado.ok) {
-      setAtivada(true);
-      setCodigo("");
-    }
-    setOcupado(false);
-  }
 
   async function handleSincronizarAgora() {
     setOcupado(true);
@@ -129,37 +118,12 @@ function CartaoSincronizacao() {
           </div>
 
           {!ativada ? (
-            <>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "1rem" }}>
-                Digite o código de acesso <strong>uma única vez</strong> e pronto: crianças,
-                sessões, evoluções e até o tema passam a seguir você em qualquer celular ou
-                computador. Sem internet, tudo continua funcionando — sincroniza sozinho depois.
-              </p>
-              <div style={{ display: "flex", gap: "0.625rem", flexWrap: "wrap" }}>
-                <input
-                  type="password"
-                  value={codigo}
-                  onChange={(e) => setCodigo(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !ocupado) handleAtivar(); }}
-                  placeholder="Código de acesso"
-                  autoComplete="off"
-                  style={{
-                    flex: "1 1 180px",
-                    padding: "0.625rem 0.875rem",
-                    borderRadius: "0.5rem",
-                    border: "1px solid var(--border)",
-                    background: "var(--bg-primary)",
-                    color: "var(--text-primary)",
-                    fontSize: "0.875rem",
-                    outline: "none",
-                  }}
-                />
-                <button onClick={handleAtivar} disabled={ocupado} style={botaoPrimario}>
-                  <Cloud size={15} />
-                  {ocupado ? "Ativando..." : "Ativar"}
-                </button>
-              </div>
-            </>
+            <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
+              Para seus dados e tema aparecerem em qualquer celular ou computador, basta abrir
+              o <strong>link de ativação</strong> que o Rayan te enviou — uma única vez por
+              aparelho, sem digitar nada. Enquanto isso, tudo continua salvo aqui no aparelho
+              e funcionando normalmente, até sem internet.
+            </p>
           ) : (
             <>
               <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "1rem" }}>
@@ -715,7 +679,7 @@ export default function ConfiguracoesPage() {
               >
                 <Heart size={13} color="var(--danger)" />
                 <span>
-                  Desenvolvido com cuidado para Rafaela Dias — Psicóloga AEE
+                  Desenvolvido por <strong>Rayan</strong>, com cuidado, para Rafaela Dias — Psicóloga AEE
                 </span>
               </div>
             </div>
