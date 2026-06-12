@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controle-aee-v4';
+const CACHE_NAME = 'controle-aee-v5';
 const urlsToCache = [
   '/Controle-AEE/',
   '/Controle-AEE/alunos/',
@@ -29,10 +29,29 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Stale-While-Revalidate: serve do cache, atualiza em segundo plano
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // Navegações (HTML): REDE PRIMEIRO — garante que atualizações do site
+  // apareçam já na primeira recarga; o cache só entra quando estiver offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) =>
+        fetch(event.request)
+          .then((response) => {
+            if (response.ok) cache.put(event.request, response.clone());
+            return response;
+          })
+          .catch(() =>
+            cache.match(event.request).then((cached) => cached || cache.match('/Controle-AEE/'))
+          )
+      )
+    );
+    return;
+  }
+
+  // Demais arquivos (CSS/JS/imagens): stale-while-revalidate.
+  // Os chunks do Next têm hash no nome, então servir do cache é seguro.
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) =>
       cache.match(event.request).then((cached) => {
