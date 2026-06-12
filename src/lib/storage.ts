@@ -62,6 +62,29 @@ export function subscribe(callback: () => void): () => void {
   return () => listeners.delete(callback);
 }
 
+// ── Integração com a sincronização na nuvem ─────────────────────────────────
+// A camada de sync (src/lib/sync.ts) se registra aqui para ser avisada de
+// cada mutação local e replicá-la na nuvem quando houver conexão.
+export interface OpMutacao {
+  tipo: 'upsert' | 'delete';
+  tabela: 'criancas' | 'sessoes' | 'evolucoes';
+  id: string;
+  dados?: unknown;
+}
+
+let aoMutar: ((op: OpMutacao) => void) | null = null;
+
+export function registrarAoMutar(callback: (op: OpMutacao) => void) {
+  aoMutar = callback;
+}
+
+/** Substitui todos os dados locais (usado ao puxar da nuvem — não dispara sync) */
+export function substituirTudo(dados: { criancas: Crianca[]; sessoes: Sessao[]; evolucoes: Evolucao[] }) {
+  gravar('criancas', dados.criancas);
+  gravar('sessoes', dados.sessoes);
+  gravar('evolucoes', dados.evolucoes);
+}
+
 export function getCriancas(): Crianca[] {
   return (cache ?? carregar()).criancas;
 }
@@ -84,6 +107,7 @@ export function novoId(): string {
 export function addCrianca(dados: Omit<Crianca, 'id'>): Crianca {
   const nova: Crianca = { ...dados, id: novoId() };
   gravar('criancas', [...getCriancas(), nova]);
+  aoMutar?.({ tipo: 'upsert', tabela: 'criancas', id: nova.id, dados: nova });
   return nova;
 }
 
@@ -92,35 +116,46 @@ export function updateCrianca(id: string, patch: Partial<Omit<Crianca, 'id'>>): 
     'criancas',
     getCriancas().map((c) => (c.id === id ? { ...c, ...patch } : c))
   );
+  const atualizada = getCriancas().find((c) => c.id === id);
+  if (atualizada) aoMutar?.({ tipo: 'upsert', tabela: 'criancas', id, dados: atualizada });
 }
 
 export function removeCrianca(id: string): void {
   // Remove também as sessões e evoluções vinculadas à criança
+  const sessoesRemovidas = getSessoes().filter((s) => s.criancaId === id);
+  const evolucoesRemovidas = getEvolucoes().filter((e) => e.criancaId === id);
   gravar('sessoes', getSessoes().filter((s) => s.criancaId !== id));
   gravar('evolucoes', getEvolucoes().filter((e) => e.criancaId !== id));
   gravar('criancas', getCriancas().filter((c) => c.id !== id));
+  sessoesRemovidas.forEach((s) => aoMutar?.({ tipo: 'delete', tabela: 'sessoes', id: s.id }));
+  evolucoesRemovidas.forEach((e) => aoMutar?.({ tipo: 'delete', tabela: 'evolucoes', id: e.id }));
+  aoMutar?.({ tipo: 'delete', tabela: 'criancas', id });
 }
 
 // ── CRUD: Sessões ───────────────────────────────────────────────────────────
 export function addSessao(dados: Omit<Sessao, 'id'>): Sessao {
   const nova: Sessao = { ...dados, id: novoId() };
   gravar('sessoes', [...getSessoes(), nova]);
+  aoMutar?.({ tipo: 'upsert', tabela: 'sessoes', id: nova.id, dados: nova });
   return nova;
 }
 
 export function removeSessao(id: string): void {
   gravar('sessoes', getSessoes().filter((s) => s.id !== id));
+  aoMutar?.({ tipo: 'delete', tabela: 'sessoes', id });
 }
 
 // ── CRUD: Evoluções ─────────────────────────────────────────────────────────
 export function addEvolucao(dados: Omit<Evolucao, 'id'>): Evolucao {
   const nova: Evolucao = { ...dados, id: novoId() };
   gravar('evolucoes', [...getEvolucoes(), nova]);
+  aoMutar?.({ tipo: 'upsert', tabela: 'evolucoes', id: nova.id, dados: nova });
   return nova;
 }
 
 export function removeEvolucao(id: string): void {
   gravar('evolucoes', getEvolucoes().filter((e) => e.id !== id));
+  aoMutar?.({ tipo: 'delete', tabela: 'evolucoes', id });
 }
 
 // ── Sincronização entre abas abertas do navegador ───────────────────────────

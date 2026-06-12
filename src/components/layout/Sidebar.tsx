@@ -119,7 +119,7 @@ export function Sidebar() {
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
       >
         <p className="text-xs" style={{ color: "rgba(168, 196, 216, 0.5)" }}>
-          v2.0
+          v2.0 · Desenvolvido por Rayan
         </p>
         <button
           onClick={alternarTema}

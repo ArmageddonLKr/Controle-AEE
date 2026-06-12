@@ -7,8 +7,9 @@ Sistema de gestão para psicóloga do Atendimento Educacional Especializado (AEE
 1. Acesse o sistema publicado: https://armageddonlkr.github.io/Controle-AEE/
 2. Em **Crianças**, clique em **Nova Criança** para o primeiro cadastro.
 3. No perfil de cada criança você registra **sessões** e **evoluções**, e exporta a ficha em PDF ou Word.
-4. Os dados ficam salvos **no próprio dispositivo** (navegador). Use sempre o mesmo aparelho/navegador
-   e não limpe os dados de navegação do site. A sincronização na nuvem (Supabase) virá na fase 2.
+4. Os dados ficam salvos no dispositivo e funcionam offline. Para usar em vários aparelhos,
+   ative a **sincronização na nuvem** em Configurações digitando o código de acesso (uma vez
+   por aparelho). O código não está neste repositório — ele fica somente no servidor.
 5. Dica: instale como aplicativo — no celular, use "Adicionar à tela inicial".
 
 ## Desenvolvimento local
