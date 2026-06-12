@@ -1,78 +1,101 @@
 "use client";
 
-import { useMemo, useState, useEffect } from 'react';
-import { criancas as mockCriancas, sessoes as mockSessoes } from '@/lib/mock-data';
-import type { Crianca, Sessao } from '@/types';
+import { useMemo, useState, useEffect, useSyncExternalStore } from 'react';
+import * as storage from '@/lib/storage';
+import type { Crianca, Sessao, Evolucao } from '@/types';
 
-// Função que simula o hook useQuery, mas usando dados mock e um delay para parecer real
-const useMockQuery = <T>(data: T | undefined) => {
-  const [loading, setLoading] = useState(true);
+// Snapshots vazios estáveis para a renderização no servidor (SSG)
+const SEM_CRIANCAS: Crianca[] = [];
+const SEM_SESSOES: Sessao[] = [];
+const SEM_EVOLUCOES: Evolucao[] = [];
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 350); // Simula um delay de rede
-    return () => clearTimeout(timer);
-  }, []);
+// "loading" enquanto o componente ainda não montou no navegador —
+// evita mostrar estado vazio antes do localStorage ser lido
+function useMontado() {
+  const [montado, setMontado] = useState(false);
+  useEffect(() => setMontado(true), []);
+  return montado;
+}
 
-  // Para evitar retornar "undefined" durante o loading inicial, retornamos um array/objeto vazio
-  const initialData = Array.isArray(data) ? [] : undefined;
+function useCriancasStore(): Crianca[] {
+  return useSyncExternalStore(storage.subscribe, storage.getCriancas, () => SEM_CRIANCAS);
+}
 
-  return {
-    data: loading ? initialData : data,
-    isLoading: loading,
-    isError: false,
-    error: null,
-  };
-};
+function useSessoesStore(): Sessao[] {
+  return useSyncExternalStore(storage.subscribe, storage.getSessoes, () => SEM_SESSOES);
+}
 
-// Hook para buscar todas as crianças (agora do mock)
+function useEvolucoesStore(): Evolucao[] {
+  return useSyncExternalStore(storage.subscribe, storage.getEvolucoes, () => SEM_EVOLUCOES);
+}
+
+// Hook para buscar todas as crianças (dados locais do navegador)
 export const useCriancas = () => {
-  const { data: criancas = [], isLoading, isError } = useMockQuery<Crianca[]>(mockCriancas);
+  const criancas = useCriancasStore();
+  const montado = useMontado();
 
   const ativas = useMemo(() => criancas.filter((c) => c.status === 'ativo'), [criancas]);
   const emEspera = useMemo(() => criancas.filter((c) => c.status === 'espera'), [criancas]);
   const inativas = useMemo(() => criancas.filter((c) => c.status === 'inativo'), [criancas]);
 
-  return { criancas, ativas, emEspera, inativas, loading: isLoading, isError };
+  return { criancas, ativas, emEspera, inativas, loading: !montado, isError: false };
 };
 
-// Hook para buscar uma criança específica por ID (agora do mock)
+// Hook para buscar uma criança específica por ID
 export const useCriancaById = (id: string | undefined) => {
-    const { data: crianca, isLoading, isError } = useMockQuery<Crianca | undefined>(
-        id ? mockCriancas.find(c => c.id === id) : undefined
-    );
-    return { crianca, loading: isLoading, isError };
-}
-
-// Hook para buscar as sessões de uma criança (agora do mock)
-export const useSessoesByCriancaId = (criancaId: string | undefined) => {
-    const { data: sessoes = [], isLoading, isError } = useMockQuery<Sessao[]>(
-        criancaId ? mockSessoes.filter(s => s.criancaId === criancaId) : []
-    );
-    return { sessoes, loading: isLoading, isError };
-}
-
-// Hook para buscar todas as sessões (agora do mock)
-export const useTodasSessoes = () => {
-  const { data: sessoes = [], isLoading, isError } = useMockQuery<Sessao[]>(mockSessoes);
-  return { sessoes, loading: isLoading, isError };
+  const criancas = useCriancasStore();
+  const montado = useMontado();
+  const crianca = useMemo(
+    () => (id ? criancas.find((c) => c.id === id) : undefined),
+    [criancas, id]
+  );
+  return { crianca, loading: !montado, isError: false };
 };
 
-// Hook para dados do dashboard (agora do mock)
-export const useDashboard = () => {
-  const { data: sessoes = [], isLoading, isError } = useMockQuery<Sessao[]>(mockSessoes);
+// Hook para buscar as sessões de uma criança
+export const useSessoesByCriancaId = (criancaId: string | undefined) => {
+  const todas = useSessoesStore();
+  const montado = useMontado();
+  const sessoes = useMemo(
+    () => (criancaId ? todas.filter((s) => s.criancaId === criancaId) : SEM_SESSOES),
+    [todas, criancaId]
+  );
+  return { sessoes, loading: !montado, isError: false };
+};
 
-  const sessoesRecentes = useMemo(() => sessoes
+// Hook para buscar as evoluções de uma criança
+export const useEvolucoesByCriancaId = (criancaId: string | undefined) => {
+  const todas = useEvolucoesStore();
+  const montado = useMontado();
+  const evolucoes = useMemo(
+    () => (criancaId ? todas.filter((e) => e.criancaId === criancaId) : SEM_EVOLUCOES),
+    [todas, criancaId]
+  );
+  return { evolucoes, loading: !montado, isError: false };
+};
+
+// Hook para buscar todas as sessões
+export const useTodasSessoes = () => {
+  const sessoes = useSessoesStore();
+  const montado = useMontado();
+  return { sessoes, loading: !montado, isError: false };
+};
+
+// Hook para dados do dashboard
+export const useDashboard = () => {
+  const sessoes = useSessoesStore();
+  const montado = useMontado();
+
+  const sessoesRecentes = useMemo(() => [...sessoes]
       .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-      .slice(0, 6), 
+      .slice(0, 6),
     [sessoes]);
 
   const sessoesMes = useMemo(() => {
-    if (isLoading) return [];
     const hoje = new Date();
     const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    return sessoes.filter(s => new Date(s.data) >= primeiroDia);
-  }, [sessoes, isLoading]);
+    return sessoes.filter((s) => new Date(s.data) >= primeiroDia);
+  }, [sessoes]);
 
-  return { sessoesRecentes, sessoesMes, loading: isLoading, isError };
+  return { sessoesRecentes, sessoesMes, loading: !montado, isError: false };
 };
-

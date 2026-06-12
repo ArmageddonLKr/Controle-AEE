@@ -11,8 +11,7 @@ import { StatCard } from "@/components/shared/StatCard";
 import { BirthdayAlert } from "@/components/shared/BirthdayAlert";
 import { getGreeting } from "@/lib/utils/greeting";
 import { getAniversariosProximos, isAniversarioHoje } from "@/lib/utils/birthday";
-import { criancas as mockCriancas, sessoes as mockSessoes } from "@/lib/mock-data";
-import { Crianca, Sessao } from "@/types";
+import { useCriancas, useTodasSessoes } from "@/hooks/useAlunos";
 
 const TIPO_LABEL: Record<string, string> = {
   individual:  "Individual",
@@ -22,10 +21,8 @@ const TIPO_LABEL: Record<string, string> = {
 };
 
 export default function Dashboard() {
-  const criancas: Crianca[] = mockCriancas;
-  const sessoes: Sessao[]   = mockSessoes;
-
-  const ativas  = useMemo(() => criancas.filter(c => c.status === 'ativo'),  [criancas]);
+  const { criancas, ativas, loading } = useCriancas();
+  const { sessoes } = useTodasSessoes();
 
   const sessoesRecentes = useMemo(() =>
     [...sessoes]
@@ -55,7 +52,7 @@ export default function Dashboard() {
 
   const dataHoje  = format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   const saudacao  = getGreeting("Rafaela Dias");
-  const temDados  = criancas.length > 0 || sessoes.length > 0;
+  const temDados  = !loading && (criancas.length > 0 || sessoes.length > 0);
 
   return (
     <div className="flex flex-col gap-5 md:gap-6">
@@ -102,7 +99,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Estado vazio — sem dados ainda ── */}
-      {!temDados && (
+      {!loading && !temDados && (
         <div
           className="rounded-xl p-8 flex flex-col items-center text-center gap-3"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
@@ -112,15 +109,16 @@ export default function Dashboard() {
             Bem-vinda ao Controle AEE, Rafaela!
           </h2>
           <p className="text-sm max-w-sm" style={{ color: "var(--text-muted)" }}>
-            O sistema está pronto. Em breve você poderá cadastrar as crianças e registrar os atendimentos por aqui.
+            O sistema está pronto para uso. Comece cadastrando a primeira criança —
+            os dados ficam salvos com segurança neste dispositivo.
           </p>
           <Link
-            href="/alunos"
+            href="/alunos/novo"
             className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
             style={{ background: "var(--accent-primary)" }}
           >
             <Users size={16} />
-            Ver área de crianças
+            Cadastrar primeira criança
           </Link>
         </div>
       )}
@@ -147,7 +145,7 @@ export default function Dashboard() {
                   {criancasSemSessao.slice(0, 3).map((c) => (
                     <Link
                       key={c.id}
-                      href={`/alunos/${c.id}`}
+                      href={`/alunos/perfil/?id=${c.id}`}
                       className="block p-2.5 rounded-lg transition-colors"
                       style={{ background: "var(--bg-primary)" }}
                     >

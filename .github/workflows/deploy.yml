@@ -1,8 +1,24 @@
+# Deploy para o GitHub Pages via Actions
+#
+# ATENÇÃO: o gatilho automático por push está DESATIVADO de propósito.
+# A conta do GitHub está com pendência de cobrança ("account locked due to a
+# billing issue"), o que faz todo job do Actions falhar antes mesmo de iniciar.
+# Enquanto isso, o deploy é feito publicando a build na branch `gh-pages`
+# (Settings → Pages → Deploy from a branch → gh-pages). Veja o README.
+#
+# Quando a pendência for resolvida em github.com/settings/billing, basta
+# restaurar o gatilho abaixo:
+#
+#   on:
+#     push:
+#       branches: [main]
+#     workflow_dispatch:
+#
+# e voltar a configuração do Pages para "GitHub Actions".
+
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

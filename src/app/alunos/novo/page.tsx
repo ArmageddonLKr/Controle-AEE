@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { addCrianca } from '@/lib/storage';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,12 +29,15 @@ const formSchema = z.object({
   observacoesImportantes: z.string().optional(),
   medicamentos: z.string().optional().transform(val => val ? val.split(',').map(s => s.trim()) : []),
   alergias: z.string().optional().transform(val => val ? val.split(',').map(s => s.trim()) : []),
+  responsavelNome: z.string().optional(),
+  responsavelParentesco: z.string().optional(),
+  responsavelTelefone: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 export default function NovoAlunoPage() {
-  const _router = useRouter();
+  const router = useRouter();
   const { toast } = useToast();
   const { register, handleSubmit, formState: { errors }, control } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -43,11 +47,37 @@ export default function NovoAlunoPage() {
     },
   });
 
-  const onSubmit = async (_data: FormData) => {
-    toast({
-      title: 'Funcionalidade em breve',
-      description: 'O cadastro de novas crianças estará disponível na próxima fase do sistema.',
+  const onSubmit = async (data: FormData) => {
+    const nova = addCrianca({
+      nome: data.nome,
+      dataNascimento: data.dataNascimento,
+      genero: data.genero,
+      status: data.status,
+      escola: data.escola ?? '',
+      turma: data.turma ?? '',
+      serie: data.serie ?? '',
+      turno: data.turno ?? 'manhã',
+      diagnosticos: data.diagnosticos,
+      cids: [],
+      dataInicioAcompanhamento: data.dataInicioAcompanhamento,
+      responsaveis: data.responsavelNome
+        ? [{
+            nome: data.responsavelNome,
+            parentesco: data.responsavelParentesco || 'Responsável',
+            telefone: data.responsavelTelefone || '',
+            responsavelLegal: true,
+          }]
+        : [],
+      observacoesImportantes: data.observacoesImportantes || undefined,
+      medicamentos: data.medicamentos,
+      alergias: data.alergias,
     });
+
+    toast({
+      title: 'Criança cadastrada! 🎉',
+      description: `${nova.nome} foi adicionada. Os dados ficam salvos neste dispositivo.`,
+    });
+    router.push(`/alunos/perfil/?id=${nova.id}`);
   };
 
   return (
@@ -151,6 +181,27 @@ export default function NovoAlunoPage() {
                     </Select>
                   )}
                 />
+              </div>
+            </div>
+        </div>
+
+        <div className="space-y-4 border-t pt-6">
+            <h2 className="text-xl font-semibold">Responsável</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* NOME DO RESPONSÁVEL */}
+              <div>
+                <Label htmlFor="responsavelNome">Nome</Label>
+                <Input id="responsavelNome" {...register('responsavelNome')} />
+              </div>
+              {/* PARENTESCO */}
+              <div>
+                <Label htmlFor="responsavelParentesco">Parentesco</Label>
+                <Input id="responsavelParentesco" placeholder="Ex.: Mãe" {...register('responsavelParentesco')} />
+              </div>
+              {/* TELEFONE */}
+              <div>
+                <Label htmlFor="responsavelTelefone">Telefone</Label>
+                <Input id="responsavelTelefone" placeholder="(00) 00000-0000" {...register('responsavelTelefone')} />
               </div>
             </div>
         </div>

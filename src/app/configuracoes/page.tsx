@@ -418,9 +418,10 @@ export default function ConfiguracoesPage() {
                   marginBottom: "1rem",
                 }}
               >
-                Atualmente o sistema usa dados de exemplo para demonstração visual.
-                Na segunda fase, os dados reais serão armazenados no Supabase — uma plataforma
-                de banco de dados segura e gratuita. A conexão acontecerá quando Rafaela criar sua conta.
+                Atualmente os dados ficam salvos com segurança neste dispositivo (no navegador).
+                Na segunda fase, os dados serão sincronizados com o Supabase — uma plataforma
+                de banco de dados segura e gratuita — permitindo acesso de vários aparelhos.
+                A conexão acontecerá quando Rafaela criar sua conta.
               </p>
 
               <p
@@ -450,7 +451,7 @@ export default function ConfiguracoesPage() {
                   "Copiar a URL e a chave anônima do projeto",
                   "Enviar as credenciais para o desenvolvedor",
                   "Configurar variáveis de ambiente e publicar nova versão",
-                  "Migrar dados de exemplo para o banco real",
+                  "Migrar os dados deste dispositivo para o banco na nuvem",
                 ].map((passo, i) => (
                   <li
                     key={i}
