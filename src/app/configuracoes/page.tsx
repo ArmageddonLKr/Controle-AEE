@@ -1,7 +1,201 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTema } from "@/lib/theme";
-import { Sun, Moon, Info, Database, Smartphone, Heart, Palette, RotateCcw } from "lucide-react";
+import { Sun, Moon, Info, Database, Smartphone, Heart, Palette, RotateCcw, Cloud, CloudOff, RefreshCw } from "lucide-react";
+import { isSupabaseConnected } from "@/lib/supabase";
+import { ativarSincronizacao, desativarSincronizacao, puxarDaNuvem } from "@/lib/sync";
+
+// Card de ativação da sincronização entre aparelhos
+function CartaoSincronizacao() {
+  const [montado, setMontado] = useState(false);
+  const [ativada, setAtivada] = useState(false);
+  const [codigo, setCodigo] = useState("");
+  const [ocupado, setOcupado] = useState(false);
+  const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+
+  useEffect(() => {
+    setMontado(true);
+    setAtivada(isSupabaseConnected());
+  }, []);
+
+  async function handleAtivar() {
+    setOcupado(true);
+    setMensagem(null);
+    const resultado = await ativarSincronizacao(codigo);
+    setMensagem({ tipo: resultado.ok ? "ok" : "erro", texto: resultado.mensagem });
+    if (resultado.ok) {
+      setAtivada(true);
+      setCodigo("");
+    }
+    setOcupado(false);
+  }
+
+  async function handleSincronizarAgora() {
+    setOcupado(true);
+    setMensagem(null);
+    const ok = await puxarDaNuvem();
+    setMensagem(
+      ok
+        ? { tipo: "ok", texto: "Tudo sincronizado!" }
+        : { tipo: "erro", texto: "Não foi possível sincronizar agora. Verifique a internet." }
+    );
+    setOcupado(false);
+  }
+
+  function handleDesativar() {
+    desativarSincronizacao();
+    setAtivada(false);
+    setMensagem({ tipo: "ok", texto: "Sincronização desativada neste aparelho. Os dados locais continuam intactos." });
+  }
+
+  const botaoPrimario: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.4rem",
+    padding: "0.625rem 1.125rem",
+    borderRadius: "0.5rem",
+    fontSize: "0.8125rem",
+    fontWeight: 700,
+    cursor: ocupado ? "wait" : "pointer",
+    border: "none",
+    background: "var(--accent-primary)",
+    color: "#fff",
+    opacity: ocupado ? 0.7 : 1,
+  };
+
+  const botaoDiscreto: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.4rem",
+    padding: "0.625rem 1.125rem",
+    borderRadius: "0.5rem",
+    fontSize: "0.8125rem",
+    fontWeight: 600,
+    cursor: ocupado ? "wait" : "pointer",
+    border: "1px solid var(--border)",
+    background: "transparent",
+    color: "var(--text-secondary)",
+  };
+
+  return (
+    <div
+      style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border)",
+        borderRadius: "0.75rem",
+        padding: "1.25rem",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+      }}
+    >
+      <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+        <div
+          style={{
+            width: "2.75rem",
+            height: "2.75rem",
+            borderRadius: "0.625rem",
+            background: ativada ? "rgba(46,204,142,0.12)" : "var(--accent-light)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {ativada
+            ? <Cloud size={20} color="var(--success)" />
+            : <Database size={20} color="var(--accent-primary)" />}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.375rem", flexWrap: "wrap" }}>
+            <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--text-primary)" }}>
+              Dados em todos os aparelhos
+            </h3>
+            {montado && (
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  color: ativada ? "var(--success)" : "var(--text-muted)",
+                  background: ativada ? "rgba(46,204,142,0.12)" : "var(--bg-primary)",
+                  padding: "0.1rem 0.5rem",
+                  borderRadius: "9999px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {ativada ? "● Ativa" : "Desativada"}
+              </span>
+            )}
+          </div>
+
+          {!ativada ? (
+            <>
+              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "1rem" }}>
+                Digite o código de acesso <strong>uma única vez</strong> e pronto: crianças,
+                sessões, evoluções e até o tema passam a seguir você em qualquer celular ou
+                computador. Sem internet, tudo continua funcionando — sincroniza sozinho depois.
+              </p>
+              <div style={{ display: "flex", gap: "0.625rem", flexWrap: "wrap" }}>
+                <input
+                  type="password"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !ocupado) handleAtivar(); }}
+                  placeholder="Código de acesso"
+                  autoComplete="off"
+                  style={{
+                    flex: "1 1 180px",
+                    padding: "0.625rem 0.875rem",
+                    borderRadius: "0.5rem",
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-primary)",
+                    color: "var(--text-primary)",
+                    fontSize: "0.875rem",
+                    outline: "none",
+                  }}
+                />
+                <button onClick={handleAtivar} disabled={ocupado} style={botaoPrimario}>
+                  <Cloud size={15} />
+                  {ocupado ? "Ativando..." : "Ativar"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "1rem" }}>
+                Este aparelho está sincronizado. Tudo que você registrar aqui aparece nos outros
+                aparelhos com o código ativado — e vice-versa.
+              </p>
+              <div style={{ display: "flex", gap: "0.625rem", flexWrap: "wrap" }}>
+                <button onClick={handleSincronizarAgora} disabled={ocupado} style={botaoPrimario}>
+                  <RefreshCw size={15} />
+                  {ocupado ? "Sincronizando..." : "Sincronizar agora"}
+                </button>
+                <button onClick={handleDesativar} disabled={ocupado} style={botaoDiscreto}>
+                  <CloudOff size={15} />
+                  Desativar neste aparelho
+                </button>
+              </div>
+            </>
+          )}
+
+          {mensagem && (
+            <p
+              style={{
+                marginTop: "0.875rem",
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                color: mensagem.tipo === "ok" ? "var(--success)" : "var(--danger)",
+              }}
+            >
+              {mensagem.texto}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Cores de destaque pré-definidas — a Rafaela também pode escolher qualquer
 // outra cor pelo seletor livre
@@ -529,7 +723,7 @@ export default function ConfiguracoesPage() {
         </div>
       </section>
 
-      {/* ── SEÇÃO 3: Conexão Supabase ── */}
+      {/* ── SEÇÃO 3: Sincronização na nuvem ── */}
       <section>
         <p
           style={{
@@ -541,119 +735,9 @@ export default function ConfiguracoesPage() {
             marginBottom: "0.875rem",
           }}
         >
-          Banco de dados
+          Sincronização na nuvem
         </p>
-
-        <div
-          style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: "0.75rem",
-            padding: "1.25rem",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
-          }}
-        >
-          <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-            <div
-              style={{
-                width: "2.75rem",
-                height: "2.75rem",
-                borderRadius: "0.625rem",
-                background: "rgba(240,165,0,0.12)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <Database size={20} color="var(--warning)" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.375rem" }}>
-                <h3
-                  style={{
-                    fontSize: "0.9375rem",
-                    fontWeight: 700,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Sincronização na nuvem (Supabase)
-                </h3>
-                <span
-                  style={{
-                    fontSize: "0.65rem",
-                    fontWeight: 700,
-                    color: "var(--warning)",
-                    background: "rgba(240,165,0,0.12)",
-                    padding: "0.1rem 0.5rem",
-                    borderRadius: "9999px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  Opcional
-                </span>
-              </div>
-              <p
-                style={{
-                  fontSize: "0.8125rem",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.6,
-                  marginBottom: "1rem",
-                }}
-              >
-                O sistema está completo e funciona 100% neste dispositivo, inclusive sem internet —
-                os dados ficam salvos com segurança no navegador. Se um dia você quiser acessar
-                os mesmos dados de vários aparelhos (celular e computador, por exemplo), dá para
-                ativar a sincronização com o Supabase — uma plataforma de banco de dados segura
-                e gratuita. Até lá, nada precisa ser feito.
-              </p>
-
-              <p
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  color: "var(--text-muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Se um dia quiser ativar
-              </p>
-              <ol
-                style={{
-                  paddingLeft: "1.125rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "0.375rem",
-                  margin: 0,
-                }}
-              >
-                {[
-                  "Rafaela cria conta gratuita em supabase.com",
-                  "Criar projeto com nome \"controle-aee\"",
-                  "Copiar a URL e a chave anônima do projeto",
-                  "Enviar as credenciais para o desenvolvedor",
-                  "Configurar variáveis de ambiente e publicar nova versão",
-                  "Migrar os dados deste dispositivo para o banco na nuvem",
-                ].map((passo, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      fontSize: "0.8125rem",
-                      color: "var(--text-secondary)",
-                      lineHeight: 1.5,
-                      paddingLeft: "0.25rem",
-                    }}
-                  >
-                    {passo}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </div>
+        <CartaoSincronizacao />
       </section>
 
       {/* ── SEÇÃO 4: Como instalar no celular (PWA) ── */}

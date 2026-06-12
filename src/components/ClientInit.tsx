@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { iniciarSync } from "@/lib/sync";
 
 export function ClientInit() {
   useEffect(() => {
+    // Liga a sincronização com a nuvem (offline-first)
+    iniciarSync();
+
     // Registra o service worker (modo offline + atualizações automáticas)
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/Controle-AEE/sw.js").catch(() => {});

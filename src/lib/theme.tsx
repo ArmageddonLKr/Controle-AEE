@@ -4,6 +4,7 @@
 // Todas as preferências (tema, cor de destaque, cor da fonte) ficam salvas
 // no localStorage e são reaplicadas automaticamente em toda visita.
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { sincronizarPreferencias, EVENTO_PREFS } from "./sync";
 
 type Tema = "claro" | "escuro";
 
@@ -115,6 +116,20 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
     const coresSalvas = lerCoresSalvas();
     setCores(coresSalvas);
     aplicarCores(coresSalvas);
+
+    // Quando preferências chegam da nuvem (outro aparelho), reaplica aqui
+    function aoReceberPrefsDaNuvem() {
+      const temaNuvem = localStorage.getItem(CHAVE_TEMA) as Tema | null;
+      if (temaNuvem) {
+        setTema(temaNuvem);
+        document.documentElement.classList.toggle("dark", temaNuvem === "escuro");
+      }
+      const coresNuvem = lerCoresSalvas();
+      setCores(coresNuvem);
+      aplicarCores(coresNuvem);
+    }
+    window.addEventListener(EVENTO_PREFS, aoReceberPrefsDaNuvem);
+    return () => window.removeEventListener(EVENTO_PREFS, aoReceberPrefsDaNuvem);
   }, []);
 
   function alternarTema() {
@@ -122,6 +137,7 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
     setTema(novoTema);
     document.documentElement.classList.toggle("dark", novoTema === "escuro");
     localStorage.setItem(CHAVE_TEMA, novoTema);
+    sincronizarPreferencias({ tema: novoTema, cores: lerCoresSalvas() });
   }
 
   const salvarCores = useCallback((novas: CoresPrefs) => {
@@ -132,6 +148,8 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // armazenamento indisponível — mantém só na sessão atual
     }
+    const temaAtual = (localStorage.getItem(CHAVE_TEMA) as Tema | null) ?? "claro";
+    sincronizarPreferencias({ tema: temaAtual, cores: novas });
   }, []);
 
   const definirCorDestaque = useCallback(
