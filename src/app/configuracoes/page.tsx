@@ -1,7 +1,188 @@
 "use client";
 
 import { useTema } from "@/lib/theme";
-import { Sun, Moon, Info, Database, Smartphone, Heart } from "lucide-react";
+import { Sun, Moon, Info, Database, Smartphone, Heart, Palette, RotateCcw } from "lucide-react";
+
+// Cores de destaque pré-definidas — a Rafaela também pode escolher qualquer
+// outra cor pelo seletor livre
+const CORES_DESTAQUE = [
+  { nome: "Azul AEE",  cor: "#4A9EBF" },
+  { nome: "Rosa",      cor: "#EC4899" },
+  { nome: "Lilás",     cor: "#A78BFA" },
+  { nome: "Roxo",      cor: "#8B5CF6" },
+  { nome: "Verde",     cor: "#2ECC8E" },
+  { nome: "Teal",      cor: "#14B8A6" },
+  { nome: "Âmbar",     cor: "#F0A500" },
+  { nome: "Coral",     cor: "#F87171" },
+  { nome: "Ciano",     cor: "#06B6D4" },
+  { nome: "Índigo",    cor: "#6366F1" },
+];
+
+function BolinhaDeCor({
+  cor,
+  nome,
+  ativa,
+  onClick,
+}: {
+  cor: string;
+  nome: string;
+  ativa: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={nome}
+      aria-label={`Cor ${nome}`}
+      aria-pressed={ativa}
+      style={{
+        width: "2.25rem",
+        height: "2.25rem",
+        borderRadius: "50%",
+        background: cor,
+        cursor: "pointer",
+        border: ativa ? "3px solid var(--text-primary)" : "3px solid transparent",
+        outline: ativa ? "2px solid var(--bg-card)" : "none",
+        outlineOffset: "-5px",
+        transition: "transform 150ms, border-color 150ms",
+        flexShrink: 0,
+      }}
+    />
+  );
+}
+
+function SeletorDeCores() {
+  const {
+    corDestaque,
+    corTexto,
+    definirCorDestaque,
+    definirCorTexto,
+    restaurarCoresPadrao,
+  } = useTema();
+
+  const rotuloPequeno: React.CSSProperties = {
+    fontSize: "0.8125rem",
+    fontWeight: 600,
+    color: "var(--text-primary)",
+    marginBottom: "0.625rem",
+  };
+
+  const chipPadrao = (ativo: boolean): React.CSSProperties => ({
+    padding: "0.4rem 0.875rem",
+    borderRadius: "9999px",
+    fontSize: "0.75rem",
+    fontWeight: 700,
+    cursor: "pointer",
+    border: ativo ? "2px solid var(--accent-primary)" : "2px solid var(--border)",
+    background: ativo ? "var(--accent-light)" : "transparent",
+    color: ativo ? "var(--accent-primary)" : "var(--text-secondary)",
+    transition: "all 150ms",
+    flexShrink: 0,
+  });
+
+  const seletorLivre: React.CSSProperties = {
+    width: "2.25rem",
+    height: "2.25rem",
+    padding: 0,
+    border: "2px dashed var(--border)",
+    borderRadius: "50%",
+    background: "transparent",
+    cursor: "pointer",
+    flexShrink: 0,
+  };
+
+  return (
+    <div
+      style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border)",
+        borderRadius: "0.75rem",
+        padding: "1.25rem",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)",
+        marginTop: "0.75rem",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.375rem" }}>
+        <Palette size={16} color="var(--accent-primary)" />
+        <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text-primary)" }}>
+          Cores do sistema
+        </p>
+      </div>
+      <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", marginBottom: "1.25rem" }}>
+        Escolha a cor de destaque e a cor do texto do seu jeito. Tudo fica salvo
+        automaticamente neste dispositivo.
+      </p>
+
+      {/* Cor de destaque */}
+      <p style={rotuloPequeno}>Cor de destaque</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.625rem", alignItems: "center", marginBottom: "1.25rem" }}>
+        <button onClick={() => definirCorDestaque(null)} style={chipPadrao(corDestaque === null)}>
+          Padrão
+        </button>
+        {CORES_DESTAQUE.map((c) => (
+          <BolinhaDeCor
+            key={c.cor}
+            cor={c.cor}
+            nome={c.nome}
+            ativa={corDestaque?.toLowerCase() === c.cor.toLowerCase()}
+            onClick={() => definirCorDestaque(c.cor)}
+          />
+        ))}
+        {/* Seletor livre — qualquer cor */}
+        <input
+          type="color"
+          value={corDestaque ?? "#4A9EBF"}
+          onChange={(e) => definirCorDestaque(e.target.value)}
+          title="Escolher qualquer cor"
+          aria-label="Escolher qualquer cor de destaque"
+          style={seletorLivre}
+        />
+      </div>
+
+      {/* Cor do texto */}
+      <p style={rotuloPequeno}>Cor do texto</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.625rem", alignItems: "center", marginBottom: "1.25rem" }}>
+        <button onClick={() => definirCorTexto(null)} style={chipPadrao(corTexto === null)}>
+          Padrão do tema
+        </button>
+        <input
+          type="color"
+          value={corTexto ?? "#1A2B45"}
+          onChange={(e) => definirCorTexto(e.target.value)}
+          title="Escolher qualquer cor de texto"
+          aria-label="Escolher qualquer cor de texto"
+          style={seletorLivre}
+        />
+        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+          Toque no círculo para escolher qualquer cor
+        </span>
+      </div>
+
+      {/* Restaurar tudo */}
+      {(corDestaque !== null || corTexto !== null) && (
+        <button
+          onClick={restaurarCoresPadrao}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+            fontSize: "0.8125rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            border: "1px solid var(--border)",
+            background: "transparent",
+            color: "var(--text-secondary)",
+          }}
+        >
+          <RotateCcw size={14} />
+          Restaurar cores padrão
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function ConfiguracoesPage() {
   const { tema, alternarTema } = useTema();
@@ -236,6 +417,9 @@ export default function ConfiguracoesPage() {
             </button>
           </div>
         </div>
+
+        {/* Personalização de cores */}
+        <SeletorDeCores />
       </section>
 
       {/* ── SEÇÃO 2: Sobre o sistema ── */}
@@ -298,7 +482,7 @@ export default function ConfiguracoesPage() {
                     border: "1px solid var(--border)",
                   }}
                 >
-                  v1.0 — Fase Visual
+                  v2.0
                 </span>
               </div>
               <p
@@ -393,7 +577,7 @@ export default function ConfiguracoesPage() {
                     color: "var(--text-primary)",
                   }}
                 >
-                  Supabase — Em breve
+                  Sincronização na nuvem (Supabase)
                 </h3>
                 <span
                   style={{
@@ -407,7 +591,7 @@ export default function ConfiguracoesPage() {
                     letterSpacing: "0.05em",
                   }}
                 >
-                  Fase 2
+                  Opcional
                 </span>
               </div>
               <p
@@ -418,10 +602,11 @@ export default function ConfiguracoesPage() {
                   marginBottom: "1rem",
                 }}
               >
-                Atualmente os dados ficam salvos com segurança neste dispositivo (no navegador).
-                Na segunda fase, os dados serão sincronizados com o Supabase — uma plataforma
-                de banco de dados segura e gratuita — permitindo acesso de vários aparelhos.
-                A conexão acontecerá quando Rafaela criar sua conta.
+                O sistema está completo e funciona 100% neste dispositivo, inclusive sem internet —
+                os dados ficam salvos com segurança no navegador. Se um dia você quiser acessar
+                os mesmos dados de vários aparelhos (celular e computador, por exemplo), dá para
+                ativar a sincronização com o Supabase — uma plataforma de banco de dados segura
+                e gratuita. Até lá, nada precisa ser feito.
               </p>
 
               <p
@@ -434,7 +619,7 @@ export default function ConfiguracoesPage() {
                   marginBottom: "0.5rem",
                 }}
               >
-                Próximos passos
+                Se um dia quiser ativar
               </p>
               <ol
                 style={{
