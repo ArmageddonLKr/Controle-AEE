@@ -1,32 +1,50 @@
-const CACHE_NAME = 'controle-aee-v2';
+const CACHE_NAME = 'controle-aee-v3';
 const urlsToCache = [
   '/Controle-AEE/',
   '/Controle-AEE/alunos/',
   '/Controle-AEE/calendario/',
   '/Controle-AEE/relatorios/',
   '/Controle-AEE/configuracoes/',
+  '/Controle-AEE/manifest.json',
 ];
 
+// Instala e já assume o controle sem esperar a aba fechar
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
 });
 
-// Limpa caches de versões anteriores ao ativar
+// Assume controle de todas as abas abertas imediatamente
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    caches.keys().then((names) =>
+      Promise.all(
+        names
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      )
     ).then(() => self.clients.claim())
   );
 });
 
+// Stale-While-Revalidate: serve do cache, atualiza em segundo plano
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(event.request).then((response) => response || caches.match('/Controle-AEE/'))
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(event.request).then((cached) => {
+        const network = fetch(event.request)
+          .then((response) => {
+            if (response.ok) cache.put(event.request, response.clone());
+            return response;
+          })
+          .catch(() => cached);
+
+        return cached || network;
+      })
     )
   );
 });
