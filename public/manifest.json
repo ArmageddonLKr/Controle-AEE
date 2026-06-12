@@ -7,7 +7,7 @@
   "display": "standalone",
   "background_color": "#F0F7FF",
   "theme_color": "#1E3A5F",
-  "orientation": "any",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/Controle-AEE/icons/icon-192.png",

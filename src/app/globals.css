@@ -68,10 +68,12 @@ body {
 }
 
 /* ── Sidebar ── */
+/* IMPORTANTE: não definir "display" aqui — quem controla a visibilidade é o
+   Tailwind no componente ("hidden md:flex"). Um display:flex neste seletor
+   vence o .hidden na cascata e faz a sidebar aparecer por cima do conteúdo
+   no celular. */
 .sidebar-aee {
   background-color: var(--bg-sidebar);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
