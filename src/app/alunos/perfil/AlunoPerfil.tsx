@@ -7,13 +7,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { differenceInYears, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, Phone, Trash2, UserX } from 'lucide-react';
+import { ArrowLeft, Pencil, Phone, Trash2, UserX } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useCriancaById, useSessoesByCriancaId, useEvolucoesByCriancaId } from '@/hooks/useAlunos';
-import { removeCrianca } from '@/lib/storage';
+import { removeCrianca, removeEvolucao } from '@/lib/storage';
+import EditEvolucaoForm from '@/components/shared/EditEvolucaoForm';
 import { useToast } from '@/hooks/use-toast';
 import { ExportButton } from '@/components/shared/ExportButton';
 import SessoesList from '@/components/shared/SessoesList';
@@ -120,6 +121,13 @@ export default function AlunoPerfil({ id }: { id?: string }) {
               <Badge variant={crianca.status === 'ativo' ? 'success' : 'secondary'}>
                 {STATUS_LABEL[crianca.status]}
               </Badge>
+              <Link
+                href={`/alunos/editar/?id=${crianca.id}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                style={{ background: 'var(--accent-light)', color: 'var(--accent-primary)' }}
+              >
+                <Pencil size={12} /> Editar Cadastro
+              </Link>
             </CardHeader>
             <CardContent className="space-y-2">
               <LinhaInfo rotulo="Idade" valor={`${idade} ${idade === 1 ? 'ano' : 'anos'}`} />
@@ -220,13 +228,32 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                       .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
                       .map((ev) => (
                         <div key={ev.id} className="rounded-xl p-4" style={{ border: '1px solid var(--border)' }}>
-                          <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-                            <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                              {ev.periodo}
-                            </p>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                              {format(new Date(ev.data), 'dd/MM/yyyy', { locale: ptBR })}
-                            </p>
+                          <div className="flex items-start justify-between flex-wrap gap-2 mb-2">
+                            <div>
+                              <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {ev.periodo}
+                              </p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                                {format(new Date(ev.data), 'dd/MM/yyyy', { locale: ptBR })}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-0.5">
+                              <EditEvolucaoForm evolucao={ev} />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                title="Excluir evolução"
+                                onClick={() => {
+                                  if (window.confirm('Excluir este registro de evolução? Essa ação não pode ser desfeita.')) {
+                                    removeEvolucao(ev.id);
+                                    toast({ title: 'Evolução excluída', description: 'O registro foi removido.' });
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           </div>
                           {ev.areas.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mb-2">

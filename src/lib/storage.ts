@@ -140,6 +140,12 @@ export function addSessao(dados: Omit<Sessao, 'id'>): Sessao {
   return nova;
 }
 
+export function updateSessao(id: string, patch: Partial<Omit<Sessao, 'id' | 'criancaId'>>): void {
+  gravar('sessoes', getSessoes().map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  const atualizada = getSessoes().find((s) => s.id === id);
+  if (atualizada) aoMutar?.({ tipo: 'upsert', tabela: 'sessoes', id, dados: atualizada });
+}
+
 export function removeSessao(id: string): void {
   gravar('sessoes', getSessoes().filter((s) => s.id !== id));
   aoMutar?.({ tipo: 'delete', tabela: 'sessoes', id });
@@ -153,9 +159,25 @@ export function addEvolucao(dados: Omit<Evolucao, 'id'>): Evolucao {
   return nova;
 }
 
+export function updateEvolucao(id: string, patch: Partial<Omit<Evolucao, 'id' | 'criancaId'>>): void {
+  gravar('evolucoes', getEvolucoes().map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  const atualizada = getEvolucoes().find((e) => e.id === id);
+  if (atualizada) aoMutar?.({ tipo: 'upsert', tabela: 'evolucoes', id, dados: atualizada });
+}
+
 export function removeEvolucao(id: string): void {
   gravar('evolucoes', getEvolucoes().filter((e) => e.id !== id));
   aoMutar?.({ tipo: 'delete', tabela: 'evolucoes', id });
+}
+
+// ── Seed de dados de demonstração ───────────────────────────────────────────
+// Só insere se não houver nenhuma criança ainda (primeira abertura em novo dispositivo).
+export function seedMockData(dados: { criancas: Crianca[]; sessoes: Sessao[]; evolucoes: Evolucao[] }): void {
+  if (typeof window === 'undefined') return;
+  if (getCriancas().length > 0) return; // já tem dados — não sobrescreve
+  gravar('criancas', dados.criancas);
+  gravar('sessoes', dados.sessoes);
+  gravar('evolucoes', dados.evolucoes);
 }
 
 // ── Sincronização entre abas abertas do navegador ───────────────────────────

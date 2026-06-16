@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  /* Tema Claro */
+  /* ── Tema Claro — variáveis do projeto ── */
   --bg-primary:      #F0F7FF;
   --bg-card:         #FFFFFF;
   --bg-sidebar:      #1E3A5F;
@@ -21,10 +21,31 @@
   --danger:          #E05555;
   --radius:          0.75rem;
   --radius-sm:       0.5rem;
+
+  /* ── Variáveis shadcn/ui (Tailwind: bg-background, text-foreground, etc.) ── */
+  /* Estas resolvem as classes dos componentes Radix (Dialog, Select, Popover…) */
+  --background:             0 0% 100%;
+  --foreground:             214 46% 18%;
+  --card:                   0 0% 100%;
+  --card-foreground:        214 46% 18%;
+  --popover:                0 0% 100%;
+  --popover-foreground:     214 46% 18%;
+  --primary:                197 47% 52%;
+  --primary-foreground:     0 0% 100%;
+  --secondary:              190 57% 91%;
+  --secondary-foreground:   214 46% 18%;
+  --muted:                  203 51% 87%;
+  --muted-foreground:       210 27% 65%;
+  --accent:                 190 57% 91%;
+  --accent-foreground:      197 47% 52%;
+  --destructive:            0 67% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --input:                  203 51% 87%;
+  --ring:                   197 47% 52%;
 }
 
 .dark {
-  /* Tema Escuro */
+  /* ── Tema Escuro — variáveis do projeto ── */
   --bg-primary:      #0D1B2A;
   --bg-card:         #1A2E45;
   --bg-sidebar:      #0A1520;
@@ -38,6 +59,26 @@
   --success:         #2ECC8E;
   --warning:         #F0A500;
   --danger:          #E05555;
+
+  /* ── Variáveis shadcn/ui (tema escuro) ── */
+  --background:             211 45% 19%;
+  --foreground:             205 83% 96%;
+  --card:                   211 45% 19%;
+  --card-foreground:        205 83% 96%;
+  --popover:                210 53% 11%;
+  --popover-foreground:     205 83% 96%;
+  --primary:                180 70% 63%;
+  --primary-foreground:     210 53% 11%;
+  --secondary:              210 46% 24%;
+  --secondary-foreground:   205 83% 96%;
+  --muted:                  210 46% 24%;
+  --muted-foreground:       202 23% 46%;
+  --accent:                 210 46% 24%;
+  --accent-foreground:      205 83% 96%;
+  --destructive:            0 67% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --input:                  210 47% 22%;
+  --ring:                   180 70% 63%;
 }
 
 /* ── Base ── */
