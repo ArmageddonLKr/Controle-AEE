@@ -84,6 +84,26 @@
 /* ── Base ── */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Remove highlight azul padrão do browser em tap (mobile) */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Mantém feedback leve em elementos interativos */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: rgba(74, 158, 191, 0.15);
+}
+
+/* Seleção de texto com cor de destaque do tema */
+::selection      { background-color: var(--accent-primary); color: #fff; }
+::-moz-selection { background-color: var(--accent-primary); color: #fff; }
+
+/* Focus outline acessível — só aparece na navegação por teclado */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+:focus:not(:focus-visible) { outline: none; }
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -205,7 +225,8 @@ body {
   animation: pulseBorder 2s ease-in-out infinite;
 }
 
-/* ── Scrollbar fina e elegante ── */
+/* ── Scrollbar fina — responde ao tema ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
