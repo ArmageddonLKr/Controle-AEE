@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale';
 import { useSessoesByCriancaId } from '@/hooks/useAlunos';
 import { removeSessao } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import EditSessaoForm from './EditSessaoForm';
 
 interface SessoesListProps {
   criancaId: string;
@@ -80,10 +81,11 @@ export default function SessoesList({ criancaId }: SessoesListProps) {
                   Tipo: <Badge variant="secondary">{sessao.tipo}</Badge> | Duração: {sessao.duracao} min
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Badge variant={sessao.presente ? 'success' : 'destructive'}>
                   {sessao.presente ? 'Presente' : 'Faltou'}
                 </Badge>
+                <EditSessaoForm sessao={sessao} />
                 <Button
                   variant="ghost"
                   size="icon"
