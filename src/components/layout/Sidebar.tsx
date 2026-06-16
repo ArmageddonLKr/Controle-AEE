@@ -10,15 +10,17 @@ import {
   Settings,
   Sun,
   Moon,
+  Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTema } from "@/lib/theme";
 
 const navItems = [
-  { href: "/",              label: "Início",        icone: LayoutDashboard },
-  { href: "/alunos",        label: "Crianças",      icone: Users },
-  { href: "/calendario",    label: "Calendário",    icone: Calendar },
-  { href: "/relatorios",    label: "Relatórios",    icone: BarChart3 },
+  { href: "/",           label: "Início",      icone: LayoutDashboard },
+  { href: "/alunos",     label: "Crianças",    icone: Users },
+  { href: "/reunioes",   label: "Reuniões",    icone: Users2 },
+  { href: "/calendario", label: "Calendário",  icone: Calendar },
+  { href: "/relatorios", label: "Relatórios",  icone: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icone: Settings },
 ];
 
@@ -57,7 +59,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Perfil da psicóloga */}
+      {/* Perfil da psicóloga — avatar usa a cor de destaque do tema */}
       <div
         className="flex items-center gap-3 px-5 py-4"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
@@ -67,7 +69,7 @@ export function Sidebar() {
           style={{
             width: "36px",
             height: "36px",
-            background: "linear-gradient(135deg, #4A9EBF, #6EC6CA)",
+            background: "linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))",
           }}
         >
           RD
@@ -80,8 +82,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Navegação */}
-      <nav className="flex-1 px-3 py-4 space-y-1" role="navigation" aria-label="Menu principal">
+      {/* Navegação — item ativo usa a cor de destaque escolhida nas configurações */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5" role="navigation" aria-label="Menu principal">
         {navItems.map((item) => {
           const Icone = item.icone;
           const ativo = estaAtivo(item.href);
@@ -98,9 +100,10 @@ export function Sidebar() {
               style={
                 ativo
                   ? {
-                      backgroundColor: "rgba(74, 158, 191, 0.25)",
-                      color: "#6EC6CA",
-                      borderLeft: "3px solid #4A9EBF",
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      color: "var(--accent-primary)",
+                      borderLeft: "3px solid var(--accent-primary)",
+                      paddingLeft: "calc(0.75rem - 3px)",
                     }
                   : {}
               }
@@ -119,7 +122,7 @@ export function Sidebar() {
         style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
       >
         <p className="text-xs" style={{ color: "rgba(168, 196, 216, 0.5)" }}>
-          v2.0 · Desenvolvido por Rayan
+          v2.0 · Rayan
         </p>
         <button
           onClick={alternarTema}

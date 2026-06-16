@@ -2,18 +2,20 @@
 // Camada de persistência local — os dados ficam salvos no navegador (localStorage).
 // Funciona 100% offline e em site estático (GitHub Pages), sem precisar de servidor.
 // Quando o Supabase for conectado, esta camada pode ser substituída mantendo a mesma API.
-import type { Crianca, Sessao, Evolucao } from '@/types';
+import type { Crianca, Sessao, Evolucao, Reuniao } from '@/types';
 
 const KEYS = {
-  criancas: 'controle-aee:criancas',
-  sessoes: 'controle-aee:sessoes',
+  criancas:  'controle-aee:criancas',
+  sessoes:   'controle-aee:sessoes',
   evolucoes: 'controle-aee:evolucoes',
+  reunioes:  'controle-aee:reunioes',
 } as const;
 
 interface Cache {
   criancas: Crianca[];
   sessoes: Sessao[];
   evolucoes: Evolucao[];
+  reunioes: Reuniao[];
 }
 
 // Cache em memória — garante referências estáveis para o useSyncExternalStore
@@ -33,9 +35,10 @@ function lerTabela<T>(key: string): T[] {
 
 function carregar(): Cache {
   cache = {
-    criancas: lerTabela<Crianca>(KEYS.criancas),
-    sessoes: lerTabela<Sessao>(KEYS.sessoes),
+    criancas:  lerTabela<Crianca>(KEYS.criancas),
+    sessoes:   lerTabela<Sessao>(KEYS.sessoes),
     evolucoes: lerTabela<Evolucao>(KEYS.evolucoes),
+    reunioes:  lerTabela<Reuniao>(KEYS.reunioes),
   };
   return cache;
 }
@@ -95,6 +98,10 @@ export function getSessoes(): Sessao[] {
 
 export function getEvolucoes(): Evolucao[] {
   return (cache ?? carregar()).evolucoes;
+}
+
+export function getReunioesAll(): Reuniao[] {
+  return (cache ?? carregar()).reunioes;
 }
 
 // ── Geração de IDs ──────────────────────────────────────────────────────────
@@ -170,14 +177,30 @@ export function removeEvolucao(id: string): void {
   aoMutar?.({ tipo: 'delete', tabela: 'evolucoes', id });
 }
 
+// ── CRUD: Reuniões ──────────────────────────────────────────────────────────
+export function addReuniao(dados: Omit<Reuniao, 'id'>): Reuniao {
+  const nova: Reuniao = { ...dados, id: novoId() };
+  gravar('reunioes', [...getReunioesAll(), nova]);
+  return nova;
+}
+
+export function updateReuniao(id: string, patch: Partial<Omit<Reuniao, 'id'>>): void {
+  gravar('reunioes', getReunioesAll().map((r) => (r.id === id ? { ...r, ...patch } : r)));
+}
+
+export function removeReuniao(id: string): void {
+  gravar('reunioes', getReunioesAll().filter((r) => r.id !== id));
+}
+
 // ── Seed de dados de demonstração ───────────────────────────────────────────
 // Só insere se não houver nenhuma criança ainda (primeira abertura em novo dispositivo).
-export function seedMockData(dados: { criancas: Crianca[]; sessoes: Sessao[]; evolucoes: Evolucao[] }): void {
+export function seedMockData(dados: { criancas: Crianca[]; sessoes: Sessao[]; evolucoes: Evolucao[]; reunioes: Reuniao[] }): void {
   if (typeof window === 'undefined') return;
   if (getCriancas().length > 0) return; // já tem dados — não sobrescreve
   gravar('criancas', dados.criancas);
   gravar('sessoes', dados.sessoes);
   gravar('evolucoes', dados.evolucoes);
+  gravar('reunioes', dados.reunioes);
 }
 
 // ── Sincronização entre abas abertas do navegador ───────────────────────────

@@ -3,7 +3,7 @@
 // IDs fixos garantem consistência em qualquer dispositivo (seed idempotente).
 // Datas calculadas a partir de junho/2026.
 
-import type { Crianca, Sessao, Evolucao } from '@/types';
+import type { Crianca, Sessao, Evolucao, Reuniao } from '@/types';
 
 // ── Crianças ────────────────────────────────────────────────────────────────
 
@@ -462,5 +462,105 @@ export const EVOLUCOES_MOCK: Evolucao[] = [
     areas: ['Leitura', 'Matemática', 'Habilidades Sociais'],
     descricao: 'Thiago escreve o próprio nome de forma semi-autônoma. Reconhece numerais até 10. Professora Simone relatou que Thiago está generalizando habilidades sociais para o intervalo — cumprimenta colegas e pede licença.',
     proximosPassos: 'Trabalhar leitura de palavras dissílabas. Ampliar contagem e operações simples.',
+  },
+];
+
+// ── Reuniões ─────────────────────────────────────────────────────────────────
+
+export const REUNIOES_MOCK: Reuniao[] = [
+  {
+    id: 'mock-r01',
+    data: '2026-06-12',
+    hora: '08:00',
+    duracao: 60,
+    titulo: 'Reunião Pedagógica — Planejamento 2º Semestre',
+    tipo: 'pedagogica',
+    participantes: ['Rafaela Dias', 'Diretora Patrícia Souza', 'Coordenadora Lúcia Mendes', 'Professora Cláudia Mendes', 'Professora Bianca Rocha'],
+    local: 'Sala de reuniões — E.M. Professora Maria Aparecida',
+    anotacoes: 'Definidas metas para o 2º semestre. Encaminhamentos: revisão dos PDIs em julho. Professoras relataram melhora geral nas crianças com AEE. Ana Beatriz e Pedro H. foram destaques positivos.',
+    criancasRelacionadas: ['mock-c01', 'mock-c04', 'mock-c07', 'mock-c11'],
+  },
+  {
+    id: 'mock-r02',
+    data: '2026-06-10',
+    hora: '14:30',
+    duracao: 45,
+    titulo: 'Devolutiva Familiar — Ana Beatriz Santos',
+    tipo: 'familiar',
+    participantes: ['Rafaela Dias', 'Marta Santos (Mãe)', 'Roberto Santos (Pai)'],
+    local: 'Sala de atendimento — AEE',
+    anotacoes: 'Apresentado relatório semestral. Família muito comprometida. Mãe demonstrou entender bem as estratégias. Discutidas adaptações para as férias. Próxima devolutiva: início de agosto.',
+    criancasRelacionadas: ['mock-c01'],
+  },
+  {
+    id: 'mock-r03',
+    data: '2026-06-05',
+    hora: '10:00',
+    duracao: 90,
+    titulo: 'Equipe Multiprofissional — Gabriel Monteiro',
+    tipo: 'multiprofissional',
+    participantes: ['Rafaela Dias', 'Dra. Camila (Neuropediatra)', 'Maria (Fonoaudióloga)', 'Beatriz Souza (Mãe)', 'Professora Luciana Torres'],
+    local: 'Centro de Saúde Escola — via videoconferência',
+    anotacoes: 'Alinhamento das terapias para Gabriel. Neuropediatra ajustou medicação (Fluoxetina 15mg). Fonoaudióloga relatou progresso na comunicação funcional. Escola implementará sala de descanso sensorial.',
+    criancasRelacionadas: ['mock-c06'],
+  },
+  {
+    id: 'mock-r04',
+    data: '2026-05-28',
+    hora: '13:00',
+    duracao: 120,
+    titulo: 'Formação — Práticas Inclusivas em AEE',
+    tipo: 'formacao',
+    participantes: ['Rafaela Dias', 'Prof. Dr. Marcos Lima (Facilitador)', 'Equipe AEE Regional'],
+    local: 'Centro de Formação — Secretaria Municipal de Educação',
+    anotacoes: 'Formação sobre estratégias de CAA (Comunicação Aumentativa e Alternativa). Muitos insights sobre o uso de tecnologia com crianças com TEA. Materiais disponíveis no drive compartilhado.',
+  },
+  {
+    id: 'mock-r05',
+    data: '2026-05-20',
+    hora: '15:30',
+    duracao: 40,
+    titulo: 'Orientação Família — Miguel Barbosa',
+    tipo: 'familiar',
+    participantes: ['Rafaela Dias', 'Priscila Nunes (Mãe)'],
+    local: 'Sala de atendimento — AEE',
+    anotacoes: 'Priscila relatou que Miguel está se alimentando melhor em casa. Orientações sobre rotina de higiene com apoio de pictogramas. Mãe muito engajada e animada com o progresso do filho.',
+    criancasRelacionadas: ['mock-c08'],
+  },
+  {
+    id: 'mock-r06',
+    data: '2026-05-14',
+    hora: '08:30',
+    duracao: 60,
+    titulo: 'Reunião de Pais e Mestres — E.M. Santos Dumont',
+    tipo: 'pedagogica',
+    participantes: ['Rafaela Dias', 'Coordenadora Ana Paula', 'Professor André Lima', 'Professora Rita Vieira', 'Professora Simone Araújo'],
+    local: 'Auditório — E.M. Santos Dumont',
+    anotacoes: 'Apresentados os resultados do 1º trimestre. Lucas Pereira e Thiago Lima com evolução notável. Definido plano de reforço para o intervalo interletivo. Próxima reunião: agosto.',
+    criancasRelacionadas: ['mock-c02', 'mock-c08', 'mock-c10'],
+  },
+  {
+    id: 'mock-r07',
+    data: '2026-04-22',
+    hora: '09:00',
+    duracao: 50,
+    titulo: 'Acolhimento — Família Valentina Cruz',
+    tipo: 'familiar',
+    participantes: ['Rafaela Dias', 'Camila Cruz (Mãe)', 'Valentina Cruz'],
+    local: 'Sala de atendimento — AEE',
+    anotacoes: 'Primeira reunião com família. Anamnese completa realizada. Valentina colaborativa durante a observação. Encaminhamento para neurologia confirmado. Lista de espera comunicada com previsão de vaga.',
+    criancasRelacionadas: ['mock-c11'],
+  },
+  {
+    id: 'mock-r08',
+    data: '2026-04-08',
+    hora: '10:30',
+    duracao: 75,
+    titulo: 'Equipe Multiprofissional — Pedro Henrique Almeida',
+    tipo: 'multiprofissional',
+    participantes: ['Rafaela Dias', 'Dra. Andréia (Fisioterapeuta)', 'Dr. Ricardo (Pediatra)', 'Fernanda Almeida (Mãe)', 'Diego Almeida (Pai)'],
+    local: 'Clínica Integrar — videoconferência',
+    anotacoes: 'Avaliação semestral da equipe. Pedro supera expectativas de desenvolvimento. Fisioterapia mantida bissemanalmente. Família recebeu kit de estimulação domiciliar. Próxima reavaliação em outubro.',
+    criancasRelacionadas: ['mock-c04'],
   },
 ];
