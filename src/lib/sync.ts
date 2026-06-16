@@ -1,23 +1,27 @@
 // src/lib/sync.ts
-// Sincronização offline-first com a nuvem (Supabase).
+// Sincronização automática offline-first com o Supabase.
 //
-// Funcionamento:
-// - Toda mutação local entra numa fila persistida no localStorage
-// - Quando há conexão e código de acesso, a fila é enviada (rpc sync_aplicar)
-// - Ao abrir o app, envia pendências e depois puxa tudo da nuvem (sync_pull),
-//   substituindo o cache local — o tema/cores também viajam junto
-// - Sem internet ou com a nuvem indisponível, o app segue 100% funcional
-//   com os dados locais; a fila é enviada na próxima oportunidade
+// Ao iniciar, o app ativa a sync automaticamente — sem o usuário precisar
+// digitar nenhum código. O código de acesso está embutido porque o app é
+// de uso exclusivo da Rafaela Dias e a proteção real é feita pelo RLS.
+//
+// Fluxo:
+//  1. App abre → sincronizarInicial() → envia pendências locais → puxa da nuvem
+//  2. Se a nuvem está vazia e temos dados locais → sobe os dados locais
+//  3. Se a nuvem tem dados → substitui o cache local (os dados da nuvem vencem)
+//  4. Toda mutação local é imediatamente replicada na nuvem
+//  5. Sem internet → app funciona 100% offline; a fila é enviada quando voltar
 import { getSupabase, getCodigo, setCodigo } from './supabase';
 import * as storage from './storage';
-import type { Crianca, Sessao, Evolucao } from '@/types';
+import type { Crianca, Sessao, Evolucao, Reuniao } from '@/types';
 
+const CODIGO_ACESSO = 'rafa2026';
 const CHAVE_FILA = 'controle-aee:fila-sync';
 export const EVENTO_PREFS = 'controle-aee:prefs-da-nuvem';
 
 interface OpSync {
   tipo: 'upsert' | 'delete';
-  tabela: 'criancas' | 'sessoes' | 'evolucoes' | 'preferencias';
+  tabela: 'criancas' | 'sessoes' | 'evolucoes' | 'reunioes' | 'preferencias';
   id: string;
   dados?: unknown;
 }
@@ -26,6 +30,7 @@ interface DadosNuvem {
   criancas: Crianca[];
   sessoes: Sessao[];
   evolucoes: Evolucao[];
+  reunioes: Reuniao[];
   preferencias: Record<string, unknown> | null;
 }
 
@@ -44,12 +49,12 @@ function salvarFila(fila: OpSync[]) {
   try {
     window.localStorage.setItem(CHAVE_FILA, JSON.stringify(fila));
   } catch {
-    // armazenamento cheio — a fila fica só em memória nesta sessão
+    // armazenamento cheio
   }
 }
 
 export function enfileirar(op: OpSync) {
-  if (!getCodigo()) return; // sincronização desativada — nada a fazer
+  if (!getCodigo()) return;
   salvarFila([...lerFila(), op]);
   void enviarPendencias();
 }
@@ -71,7 +76,6 @@ export async function enviarPendencias(): Promise<boolean> {
       ops: fila,
     });
     if (error) return false;
-    // Remove apenas o que foi enviado (ops novas podem ter chegado enquanto isso)
     salvarFila(lerFila().slice(fila.length));
     return true;
   } catch {
@@ -86,8 +90,6 @@ export async function puxarDaNuvem(): Promise<boolean> {
   const codigo = getCodigo();
   if (!codigo) return false;
 
-  // Primeiro garante que as mudanças locais pendentes cheguem à nuvem,
-  // senão o pull poderia sobrescrever algo feito offline
   const enviou = await enviarPendencias();
   if (!enviou && lerFila().length > 0) return false;
 
@@ -100,9 +102,9 @@ export async function puxarDaNuvem(): Promise<boolean> {
       criancas: nuvem.criancas ?? [],
       sessoes: nuvem.sessoes ?? [],
       evolucoes: nuvem.evolucoes ?? [],
+      reunioes: nuvem.reunioes ?? [],
     });
 
-    // Aplica tema/cores vindos da nuvem (o TemaProvider escuta este evento)
     if (nuvem.preferencias) {
       try {
         const prefs = nuvem.preferencias as { tema?: string; cores?: unknown };
@@ -114,7 +116,7 @@ export async function puxarDaNuvem(): Promise<boolean> {
         }
         window.dispatchEvent(new Event(EVENTO_PREFS));
       } catch {
-        // preferências malformadas — ignora
+        // preferências malformadas
       }
     }
     return true;
@@ -123,48 +125,72 @@ export async function puxarDaNuvem(): Promise<boolean> {
   }
 }
 
+// ── Sincronização inteligente no início ──────────────────────────────────────
+// Se a nuvem estiver vazia mas tivermos dados locais (ex: mock data ou dados
+// criados offline), sobe tudo para a nuvem em vez de sobrescrever o local.
+async function sincronizarInicial() {
+  const codigo = getCodigo();
+  if (!codigo) return;
+
+  try {
+    // Primeiro envia eventuais pendências acumuladas offline
+    await enviarPendencias();
+
+    // Puxa snapshot da nuvem para decidir o que fazer
+    const { data, error } = await getSupabase().rpc('sync_pull', { codigo });
+    if (error || !data) return;
+
+    const nuvem = data as DadosNuvem;
+    const nuvemVazia =
+      (nuvem.criancas?.length ?? 0) === 0 &&
+      (nuvem.sessoes?.length ?? 0) === 0;
+
+    if (nuvemVazia && storage.getCriancas().length > 0) {
+      // Nuvem vazia + dados locais existem → sobe os dados locais
+      const ops: OpSync[] = [
+        ...storage.getCriancas().map((c): OpSync => ({ tipo: 'upsert', tabela: 'criancas', id: c.id, dados: c })),
+        ...storage.getSessoes().map((s): OpSync => ({ tipo: 'upsert', tabela: 'sessoes', id: s.id, dados: s })),
+        ...storage.getEvolucoes().map((e): OpSync => ({ tipo: 'upsert', tabela: 'evolucoes', id: e.id, dados: e })),
+        ...storage.getReunioesAll().map((r): OpSync => ({ tipo: 'upsert', tabela: 'reunioes', id: r.id, dados: r })),
+      ];
+      if (ops.length > 0) {
+        await getSupabase().rpc('sync_aplicar', { codigo, ops });
+      }
+    } else if (!nuvemVazia) {
+      // Nuvem tem dados → substitui local (a nuvem é a fonte de verdade)
+      storage.substituirTudo({
+        criancas: nuvem.criancas ?? [],
+        sessoes: nuvem.sessoes ?? [],
+        evolucoes: nuvem.evolucoes ?? [],
+        reunioes: nuvem.reunioes ?? [],
+      });
+
+      if (nuvem.preferencias) {
+        try {
+          const prefs = nuvem.preferencias as { tema?: string; cores?: unknown };
+          if (prefs.tema === 'claro' || prefs.tema === 'escuro') {
+            window.localStorage.setItem('tema-controle-aee', prefs.tema);
+          }
+          if (prefs.cores) {
+            window.localStorage.setItem('controle-aee:cores', JSON.stringify(prefs.cores));
+          }
+          window.dispatchEvent(new Event(EVENTO_PREFS));
+        } catch {
+          // preferências malformadas
+        }
+      }
+    }
+  } catch {
+    // Sem conexão — app continua com dados locais
+  }
+}
+
 // ── Preferências (tema/cores) → nuvem ───────────────────────────────────────
 export function sincronizarPreferencias(prefs: { tema: string; cores: unknown }) {
   enfileirar({ tipo: 'upsert', tabela: 'preferencias', id: 'rafaela', dados: prefs });
 }
 
-// ── Ativação / desativação ───────────────────────────────────────────────────
-export async function ativarSincronizacao(
-  codigo: string
-): Promise<{ ok: boolean; mensagem: string }> {
-  const codigoLimpo = codigo.trim();
-  if (!codigoLimpo) return { ok: false, mensagem: 'Digite o código de acesso.' };
-
-  // Valida o código com um pull de teste antes de salvar
-  try {
-    const { error } = await getSupabase().rpc('sync_pull', { codigo: codigoLimpo });
-    if (error) {
-      const msg = /codigo/i.test(error.message)
-        ? 'Código de acesso incorreto.'
-        : 'Não foi possível conectar à nuvem. Verifique a internet e tente de novo.';
-      return { ok: false, mensagem: msg };
-    }
-  } catch {
-    return { ok: false, mensagem: 'Não foi possível conectar à nuvem. Verifique a internet e tente de novo.' };
-  }
-
-  setCodigo(codigoLimpo);
-
-  // Envia tudo que já existe neste aparelho para a nuvem...
-  const ops: OpSync[] = [
-    ...storage.getCriancas().map((c): OpSync => ({ tipo: 'upsert', tabela: 'criancas', id: c.id, dados: c })),
-    ...storage.getSessoes().map((s): OpSync => ({ tipo: 'upsert', tabela: 'sessoes', id: s.id, dados: s })),
-    ...storage.getEvolucoes().map((e): OpSync => ({ tipo: 'upsert', tabela: 'evolucoes', id: e.id, dados: e })),
-  ];
-  salvarFila([...lerFila(), ...ops]);
-  await enviarPendencias();
-
-  // ...e traz o que houver lá (união dos dois aparelhos)
-  await puxarDaNuvem();
-
-  return { ok: true, mensagem: 'Sincronização ativada! Os dados agora seguem você em qualquer aparelho.' };
-}
-
+// ── Desativação (raramente usada) ───────────────────────────────────────────
 export function desativarSincronizacao() {
   setCodigo(null);
   salvarFila([]);
@@ -177,14 +203,18 @@ export function iniciarSync() {
   if (iniciado || typeof window === 'undefined') return;
   iniciado = true;
 
+  // Ativa a sincronização automaticamente — sem precisar de ação do usuário
+  if (!getCodigo()) {
+    setCodigo(CODIGO_ACESSO);
+  }
+
   // Replica toda mutação local para a nuvem
   storage.registrarAoMutar((op) => enfileirar(op));
 
-  if (getCodigo()) {
-    void puxarDaNuvem();
-  }
+  // Sincronização inicial em background (não bloqueia o carregamento da UI)
+  void sincronizarInicial();
 
-  // Quando a internet volta, envia o que ficou pendente
+  // Quando a internet volta, envia o que ficou na fila
   window.addEventListener('online', () => {
     void enviarPendencias();
   });

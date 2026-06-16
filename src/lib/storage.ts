@@ -70,7 +70,7 @@ export function subscribe(callback: () => void): () => void {
 // cada mutação local e replicá-la na nuvem quando houver conexão.
 export interface OpMutacao {
   tipo: 'upsert' | 'delete';
-  tabela: 'criancas' | 'sessoes' | 'evolucoes';
+  tabela: 'criancas' | 'sessoes' | 'evolucoes' | 'reunioes';
   id: string;
   dados?: unknown;
 }
@@ -82,10 +82,11 @@ export function registrarAoMutar(callback: (op: OpMutacao) => void) {
 }
 
 /** Substitui todos os dados locais (usado ao puxar da nuvem — não dispara sync) */
-export function substituirTudo(dados: { criancas: Crianca[]; sessoes: Sessao[]; evolucoes: Evolucao[] }) {
+export function substituirTudo(dados: { criancas: Crianca[]; sessoes: Sessao[]; evolucoes: Evolucao[]; reunioes?: Reuniao[] }) {
   gravar('criancas', dados.criancas);
   gravar('sessoes', dados.sessoes);
   gravar('evolucoes', dados.evolucoes);
+  if (dados.reunioes !== undefined) gravar('reunioes', dados.reunioes);
 }
 
 export function getCriancas(): Crianca[] {
@@ -181,15 +182,19 @@ export function removeEvolucao(id: string): void {
 export function addReuniao(dados: Omit<Reuniao, 'id'>): Reuniao {
   const nova: Reuniao = { ...dados, id: novoId() };
   gravar('reunioes', [...getReunioesAll(), nova]);
+  aoMutar?.({ tipo: 'upsert', tabela: 'reunioes', id: nova.id, dados: nova });
   return nova;
 }
 
 export function updateReuniao(id: string, patch: Partial<Omit<Reuniao, 'id'>>): void {
   gravar('reunioes', getReunioesAll().map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const atualizada = getReunioesAll().find((r) => r.id === id);
+  if (atualizada) aoMutar?.({ tipo: 'upsert', tabela: 'reunioes', id, dados: atualizada });
 }
 
 export function removeReuniao(id: string): void {
   gravar('reunioes', getReunioesAll().filter((r) => r.id !== id));
+  aoMutar?.({ tipo: 'delete', tabela: 'reunioes', id });
 }
 
 // ── Seed de dados de demonstração ───────────────────────────────────────────

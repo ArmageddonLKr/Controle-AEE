@@ -2,46 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useTema } from "@/lib/theme";
-import { Sun, Moon, Info, Database, Smartphone, Heart, Palette, RotateCcw, Cloud, CloudOff, RefreshCw } from "lucide-react";
-import { isSupabaseConnected, getCodigo } from "@/lib/supabase";
-import { desativarSincronizacao, puxarDaNuvem, ativarSincronizacao } from "@/lib/sync";
+import { Sun, Moon, Info, Smartphone, Heart, Palette, RotateCcw, Cloud, RefreshCw, CheckCircle2 } from "lucide-react";
+import { puxarDaNuvem } from "@/lib/sync";
 
-// Card de status da sincronização entre aparelhos.
-// A ativação acontece sozinha pelo link especial (?ativar=...) — a Rafaela
-// não digita nada; este card só mostra o status e ações simples.
+// Cartão de sincronização — mostra status e permite forçar uma atualização.
+// A sincronização é automática ao abrir o app; nenhuma ação do usuário é necessária.
 function CartaoSincronizacao() {
-  const [montado, setMontado] = useState(false);
-  const [ativada, setAtivada] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
-  const [codigoDigitado, setCodigoDigitado] = useState('');
-  const [mostrarEntrada, setMostrarEntrada] = useState(false);
-  const [codigoAtual, setCodigoAtual] = useState<string | null>(null);
-
-  useEffect(() => {
-    setMontado(true);
-    const conectado = isSupabaseConnected();
-    setAtivada(conectado);
-    if (conectado) setCodigoAtual(getCodigo());
-  }, []);
-
-  async function handleAtivarCodigo() {
-    if (!codigoDigitado.trim()) {
-      setMensagem({ tipo: 'erro', texto: 'Digite o código de acesso.' });
-      return;
-    }
-    setOcupado(true);
-    setMensagem(null);
-    const resultado = await ativarSincronizacao(codigoDigitado.trim());
-    if (resultado.ok) {
-      setAtivada(true);
-      setCodigoAtual(getCodigo());
-      setMostrarEntrada(false);
-      setCodigoDigitado('');
-    }
-    setMensagem({ tipo: resultado.ok ? 'ok' : 'erro', texto: resultado.mensagem });
-    setOcupado(false);
-  }
 
   async function handleSincronizarAgora() {
     setOcupado(true);
@@ -54,42 +22,6 @@ function CartaoSincronizacao() {
     );
     setOcupado(false);
   }
-
-  function handleDesativar() {
-    desativarSincronizacao();
-    setAtivada(false);
-    setCodigoAtual(null);
-    setMensagem({ tipo: "ok", texto: "Sincronização desativada neste aparelho. Os dados locais continuam intactos." });
-  }
-
-  const botaoPrimario: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.4rem",
-    padding: "0.625rem 1.125rem",
-    borderRadius: "0.5rem",
-    fontSize: "0.8125rem",
-    fontWeight: 700,
-    cursor: ocupado ? "wait" : "pointer",
-    border: "none",
-    background: "var(--accent-primary)",
-    color: "#fff",
-    opacity: ocupado ? 0.7 : 1,
-  };
-
-  const botaoDiscreto: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "0.4rem",
-    padding: "0.625rem 1.125rem",
-    borderRadius: "0.5rem",
-    fontSize: "0.8125rem",
-    fontWeight: 600,
-    cursor: ocupado ? "wait" : "pointer",
-    border: "1px solid var(--border)",
-    background: "transparent",
-    color: "var(--text-secondary)",
-  };
 
   return (
     <div
@@ -107,133 +39,66 @@ function CartaoSincronizacao() {
             width: "2.75rem",
             height: "2.75rem",
             borderRadius: "0.625rem",
-            background: ativada ? "rgba(46,204,142,0.12)" : "var(--accent-light)",
+            background: "rgba(46,204,142,0.12)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
-          {ativada
-            ? <Cloud size={20} color="var(--success)" />
-            : <Database size={20} color="var(--accent-primary)" />}
+          <Cloud size={20} color="var(--success)" />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.375rem", flexWrap: "wrap" }}>
             <h3 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--text-primary)" }}>
               Dados em todos os aparelhos
             </h3>
-            {montado && (
-              <span
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  color: ativada ? "var(--success)" : "var(--text-muted)",
-                  background: ativada ? "rgba(46,204,142,0.12)" : "var(--bg-primary)",
-                  padding: "0.1rem 0.5rem",
-                  borderRadius: "9999px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                {ativada ? "● Ativa" : "Desativada"}
-              </span>
-            )}
+            <span
+              style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                color: "var(--success)",
+                background: "rgba(46,204,142,0.12)",
+                padding: "0.1rem 0.5rem",
+                borderRadius: "9999px",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.25rem",
+              }}
+            >
+              <CheckCircle2 size={10} />
+              Ativa
+            </span>
           </div>
 
-          {!ativada ? (
-            <div>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "1rem" }}>
-                Para seus dados aparecerem em qualquer celular ou computador, ative a sincronização
-                inserindo o <strong>código de acesso</strong> abaixo — basta fazer isso <strong>uma vez por aparelho</strong>.
-              </p>
-              {!mostrarEntrada ? (
-                <button
-                  onClick={() => setMostrarEntrada(true)}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: "0.4rem",
-                    padding: "0.625rem 1.125rem", borderRadius: "0.5rem",
-                    fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer",
-                    border: "none", background: "var(--accent-primary)", color: "#fff",
-                  }}
-                >
-                  <Cloud size={15} /> Ativar sincronização
-                </button>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                    <input
-                      type="text"
-                      placeholder="Cole ou digite o código de acesso..."
-                      value={codigoDigitado}
-                      onChange={(e) => setCodigoDigitado(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') void handleAtivarCodigo(); }}
-                      style={{
-                        flex: 1, minWidth: 0, padding: "0.5rem 0.75rem", borderRadius: "0.5rem",
-                        border: "1px solid var(--border)", background: "var(--bg-primary)",
-                        color: "var(--text-primary)", fontSize: "0.875rem", outline: "none",
-                      }}
-                    />
-                    <button
-                      onClick={() => void handleAtivarCodigo()}
-                      disabled={ocupado}
-                      style={{
-                        padding: "0.5rem 1rem", borderRadius: "0.5rem",
-                        fontSize: "0.8125rem", fontWeight: 700, cursor: ocupado ? "wait" : "pointer",
-                        border: "none", background: "var(--accent-primary)", color: "#fff",
-                        opacity: ocupado ? 0.7 : 1, flexShrink: 0,
-                      }}
-                    >
-                      {ocupado ? "Ativando…" : "Confirmar"}
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => { setMostrarEntrada(false); setCodigoDigitado(''); setMensagem(null); }}
-                    style={{ fontSize: "0.8rem", color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "0.75rem" }}>
-                Este aparelho está sincronizado. Tudo que você registrar aqui aparece nos outros
-                aparelhos com o mesmo código ativado — e vice-versa.
-              </p>
-              {codigoAtual && (
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap",
-                  padding: "0.5rem 0.75rem", borderRadius: "0.5rem",
-                  background: "var(--bg-primary)", border: "1px solid var(--border)",
-                  marginBottom: "0.875rem",
-                }}>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>Código:</span>
-                  <code style={{ fontSize: "0.8125rem", color: "var(--text-primary)", fontFamily: "monospace", flex: 1, wordBreak: "break-all" }}>
-                    {codigoAtual}
-                  </code>
-                  <button
-                    onClick={() => { navigator.clipboard?.writeText(codigoAtual ?? '').catch(() => {}); setMensagem({ tipo: 'ok', texto: 'Código copiado!' }); }}
-                    title="Copiar código"
-                    style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--accent-primary)", background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    Copiar
-                  </button>
-                </div>
-              )}
-              <div style={{ display: "flex", gap: "0.625rem", flexWrap: "wrap" }}>
-                <button onClick={handleSincronizarAgora} disabled={ocupado} style={botaoPrimario}>
-                  <RefreshCw size={15} />
-                  {ocupado ? "Sincronizando..." : "Sincronizar agora"}
-                </button>
-                <button onClick={handleDesativar} disabled={ocupado} style={botaoDiscreto}>
-                  <CloudOff size={15} />
-                  Desativar neste aparelho
-                </button>
-              </div>
-            </>
-          )}
+          <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "0.875rem" }}>
+            A sincronização é automática — tudo que você registra aqui aparece em qualquer
+            celular ou computador assim que houver internet.
+          </p>
+
+          <button
+            onClick={handleSincronizarAgora}
+            disabled={ocupado}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              padding: "0.625rem 1.125rem",
+              borderRadius: "0.5rem",
+              fontSize: "0.8125rem",
+              fontWeight: 700,
+              cursor: ocupado ? "wait" : "pointer",
+              border: "none",
+              background: "var(--accent-primary)",
+              color: "#fff",
+              opacity: ocupado ? 0.7 : 1,
+            }}
+          >
+            <RefreshCw size={15} />
+            {ocupado ? "Sincronizando..." : "Sincronizar agora"}
+          </button>
 
           {mensagem && (
             <p
