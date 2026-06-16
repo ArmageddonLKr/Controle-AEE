@@ -4,13 +4,13 @@ import { useEffect } from "react";
 import { iniciarSync, ativarSincronizacao } from "@/lib/sync";
 import { isSupabaseConnected } from "@/lib/supabase";
 import { seedMockData } from "@/lib/storage";
-import { CRIANCAS_MOCK, SESSOES_MOCK, EVOLUCOES_MOCK } from "@/lib/mock-data";
+import { CRIANCAS_MOCK, SESSOES_MOCK, EVOLUCOES_MOCK, REUNIOES_MOCK } from "@/lib/mock-data";
 import { toast } from "@/hooks/use-toast";
 
 export function ClientInit() {
   useEffect(() => {
     // Insere dados de demonstração na primeira abertura (localStorage vazio)
-    seedMockData({ criancas: CRIANCAS_MOCK, sessoes: SESSOES_MOCK, evolucoes: EVOLUCOES_MOCK });
+    seedMockData({ criancas: CRIANCAS_MOCK, sessoes: SESSOES_MOCK, evolucoes: EVOLUCOES_MOCK, reunioes: REUNIOES_MOCK });
 
     // Liga a sincronização com a nuvem (offline-first)
     iniciarSync();

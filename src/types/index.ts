@@ -50,3 +50,16 @@ export interface Evolucao {
   areas: string[];
   proximosPassos?: string;
 }
+
+export interface Reuniao {
+  id: string;
+  data: string; // ISO date
+  hora: string; // "09:00"
+  duracao: number; // minutos
+  titulo: string;
+  tipo: 'pedagogica' | 'familiar' | 'multiprofissional' | 'formacao' | 'outra';
+  participantes: string[]; // nomes
+  local: string;
+  anotacoes: string;
+  criancasRelacionadas?: string[]; // IDs das crianças discutidas
+}

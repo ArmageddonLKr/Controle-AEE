@@ -2,12 +2,13 @@
 
 import { useMemo, useState, useEffect, useSyncExternalStore } from 'react';
 import * as storage from '@/lib/storage';
-import type { Crianca, Sessao, Evolucao } from '@/types';
+import type { Crianca, Sessao, Evolucao, Reuniao } from '@/types';
 
 // Snapshots vazios estáveis para a renderização no servidor (SSG)
 const SEM_CRIANCAS: Crianca[] = [];
 const SEM_SESSOES: Sessao[] = [];
 const SEM_EVOLUCOES: Evolucao[] = [];
+const SEM_REUNIOES: Reuniao[] = [];
 
 // "loading" enquanto o componente ainda não montou no navegador —
 // evita mostrar estado vazio antes do localStorage ser lido
@@ -79,6 +80,17 @@ export const useTodasSessoes = () => {
   const sessoes = useSessoesStore();
   const montado = useMontado();
   return { sessoes, loading: !montado, isError: false };
+};
+
+// Hook para todas as reuniões
+export const useReunioes = () => {
+  const reunioes = useSyncExternalStore(storage.subscribe, storage.getReunioesAll, () => SEM_REUNIOES);
+  const montado = useMontado();
+  const reunioesOrdenadas = useMemo(
+    () => [...reunioes].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()),
+    [reunioes]
+  );
+  return { reunioes: reunioesOrdenadas, loading: !montado };
 };
 
 // Hook para dados do dashboard

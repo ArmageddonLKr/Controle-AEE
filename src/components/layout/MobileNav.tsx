@@ -8,14 +8,16 @@ import {
   Calendar,
   BarChart3,
   Settings,
+  Users2,
 } from "lucide-react";
 
 const navItems = [
-  { href: "/",              label: "Início",       icone: LayoutDashboard },
-  { href: "/alunos",        label: "Crianças",     icone: Users },
-  { href: "/calendario",    label: "Calendário",   icone: Calendar },
-  { href: "/relatorios",    label: "Relatórios",   icone: BarChart3 },
-  { href: "/configuracoes", label: "Config.",      icone: Settings },
+  { href: "/",              label: "Início",     icone: LayoutDashboard },
+  { href: "/alunos",        label: "Crianças",   icone: Users },
+  { href: "/reunioes",      label: "Reuniões",   icone: Users2 },
+  { href: "/calendario",    label: "Calendário", icone: Calendar },
+  { href: "/relatorios",    label: "Relatórios", icone: BarChart3 },
+  { href: "/configuracoes", label: "Config.",    icone: Settings },
 ];
 
 export function MobileNav() {
@@ -35,11 +37,15 @@ export function MobileNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`bottom-nav-item${ativo ? " ativo" : ""}`}
+            className="bottom-nav-item"
             aria-current={ativo ? "page" : undefined}
+            style={ativo ? {
+              color: "var(--accent-primary)",
+              background: "rgba(255, 255, 255, 0.1)",
+            } : {}}
           >
-            <Icone size={20} strokeWidth={ativo ? 2.5 : 1.8} />
-            <span>{item.label}</span>
+            <Icone size={19} strokeWidth={ativo ? 2.5 : 1.8} />
+            <span style={{ fontSize: "0.55rem" }}>{item.label}</span>
           </Link>
         );
       })}

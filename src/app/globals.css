@@ -150,8 +150,8 @@ body {
 }
 
 .bottom-nav-item.ativo {
-  color: #6EC6CA;
-  background: rgba(74,158,191,0.15);
+  color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ── Badges de Status ── */
