@@ -2,7 +2,7 @@
 // Conteúdo do perfil da criança: coluna lateral com dados + abas de conteúdo
 'use client';
 
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { differenceInYears, format } from 'date-fns';
@@ -22,7 +22,10 @@ import {
 import {
   useCriancaById, useSessoesByCriancaId, useEvolucoesByCriancaId, useReunioesByCriancaId,
 } from '@/hooks/useAlunos';
-import { removeCrianca, removeEvolucao, addReuniao } from '@/lib/storage';
+import { removeCrianca, removeEvolucao, addReuniao, updateCrianca } from '@/lib/storage';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NIVEIS } from '@/lib/niveis';
+import { getPastas, subscribe as subscribePastas } from '@/lib/pastas';
 import EditEvolucaoForm from '@/components/shared/EditEvolucaoForm';
 import { useToast } from '@/hooks/use-toast';
 import { ExportButton } from '@/components/shared/ExportButton';
@@ -35,6 +38,13 @@ import { exportarFichaCriancaPDF } from '@/lib/utils/export-pdf';
 import { exportarFichaCriancaDocx } from '@/lib/utils/export-docx';
 import { parseDataLocal } from '@/lib/utils/date';
 import type { Reuniao } from '@/types';
+
+const PASTAS_SSR: string[] = [...NIVEIS];
+function usePastas(): string[] {
+  return useSyncExternalStore(subscribePastas, getPastas, () => PASTAS_SSR);
+}
+
+const SEM = '__sem__';
 
 const STATUS_LABEL = { ativo: 'Ativo', espera: 'Em espera', inativo: 'Inativo' } as const;
 const TURNO_LABEL = { 'manhã': 'Manhã', tarde: 'Tarde', integral: 'Integral' } as const;
@@ -88,6 +98,7 @@ export default function AlunoPerfil({ id }: { id?: string }) {
   const { sessoes } = useSessoesByCriancaId(id);
   const { evolucoes } = useEvolucoesByCriancaId(id);
   const { reunioes } = useReunioesByCriancaId(id);
+  const listaPastas = usePastas();
   const [excluindo, setExcluindo] = useState(false);
   const [novaReuniaoAberta, setNovaReuniaoAberta] = useState(false);
 
@@ -164,6 +175,28 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                 rotulo="Início do acompanhamento"
                 valor={format(parseDataLocal(crianca.dataInicioAcompanhamento), 'dd/MM/yyyy', { locale: ptBR })}
               />
+
+              {/* Pasta — troca rápida do nível/pasta da criança */}
+              <div className="pt-2">
+                <p className="text-sm font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                  Pasta
+                </p>
+                <Select
+                  value={crianca.nivel ?? SEM}
+                  onValueChange={(v) => {
+                    updateCrianca(crianca.id, { nivel: v === SEM ? undefined : v });
+                    toast({ title: 'Pasta atualizada', description: v === SEM ? 'Movida para "Sem pasta".' : `Movida para "${v}".` });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Escolha a pasta..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SEM}>Sem pasta</SelectItem>
+                    {listaPastas.map((n) => (
+                      <SelectItem key={n} value={n}>{n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {crianca.diagnosticos.length > 0 && (
                 <div className="pt-2">
