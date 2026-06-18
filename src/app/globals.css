@@ -22,6 +22,15 @@
   --radius:          0.75rem;
   --radius-sm:       0.5rem;
 
+  /* ── Texto/contornos da barra de navegação (sidebar e bottom-nav) ──
+     Ficam separados do tema porque a Rafaela pode escolher livremente a cor
+     de fundo da barra; o tema.tsx recalcula estes valores para garantir
+     contraste legível quando a cor escolhida é clara. */
+  --sidebar-fg:        #FFFFFF;
+  --sidebar-fg-muted:  rgba(168,196,216,0.7);
+  --sidebar-border:    rgba(255,255,255,0.08);
+  --sidebar-hover:     rgba(255,255,255,0.06);
+
   /* ── Variáveis shadcn/ui (Tailwind: bg-background, text-foreground, etc.) ── */
   /* Estas resolvem as classes dos componentes Radix (Dialog, Select, Popover…) */
   --background:             0 0% 100%;
@@ -59,6 +68,12 @@
   --success:         #2ECC8E;
   --warning:         #F0A500;
   --danger:          #E05555;
+
+  /* A barra de navegação é escura nos dois temas — mantém os mesmos padrões */
+  --sidebar-fg:        #FFFFFF;
+  --sidebar-fg-muted:  rgba(168,196,216,0.7);
+  --sidebar-border:    rgba(255,255,255,0.08);
+  --sidebar-hover:     rgba(255,255,255,0.06);
 
   /* ── Variáveis shadcn/ui (tema escuro) ── */
   --background:             211 45% 19%;
@@ -160,7 +175,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: rgba(168,196,216,0.6);
+  color: var(--sidebar-fg-muted);
   font-size: 0.625rem;
   font-weight: 600;
   text-decoration: none;
@@ -171,7 +186,27 @@ body {
 
 .bottom-nav-item.ativo {
   color: var(--accent-primary);
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--sidebar-hover);
+}
+
+/* ── Links da sidebar (desktop) — usam a cor de texto da barra ── */
+.sidebar-link {
+  color: var(--sidebar-fg-muted);
+}
+.sidebar-link:hover {
+  color: var(--sidebar-fg);
+  background: var(--sidebar-hover);
+}
+
+/* ── Chip de texto que SEMPRE cabe na caixa (quebra linha em vez de vazar) ── */
+.chip-wrap {
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
+  text-align: left;
 }
 
 /* ── Badges de Status ── */

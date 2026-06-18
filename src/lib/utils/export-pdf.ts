@@ -30,7 +30,7 @@ export function exportarRelatorioAtendimentosPDF(
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Rafaela Dias — Psicóloga | AEE", 14, 17);
+  doc.text("Rafaela Dias — Atendimento Educacional Especializado", 14, 17);
 
   const dataHora = format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
   doc.text(`Gerado em: ${dataHora}`, larguraPagina - 14, 14, { align: "right" });
@@ -84,7 +84,7 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
   doc.text("Controle AEE — Ficha da Criança", 14, 11);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text("Rafaela Dias — Psicóloga | AEE", 14, 19);
+  doc.text("Rafaela Dias — Atendimento Educacional Especializado", 14, 19);
 
   const dataHora = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
   doc.text(`Gerado em: ${dataHora}`, larguraPagina - 14, 19, { align: "right" });

@@ -8,13 +8,13 @@ import {
   Calendar,
   BarChart3,
   Settings,
-  Users2,
+  Handshake,
 } from "lucide-react";
 
 const navItems = [
   { href: "/",              label: "Início",     icone: LayoutDashboard },
   { href: "/alunos",        label: "Crianças",   icone: Users },
-  { href: "/reunioes",      label: "Reuniões",   icone: Users2 },
+  { href: "/reunioes",      label: "Reuniões",   icone: Handshake },
   { href: "/calendario",    label: "Calendário", icone: Calendar },
   { href: "/relatorios",    label: "Relatórios", icone: BarChart3 },
   { href: "/configuracoes", label: "Config.",    icone: Settings },
@@ -41,7 +41,7 @@ export function MobileNav() {
             aria-current={ativo ? "page" : undefined}
             style={ativo ? {
               color: "var(--accent-primary)",
-              background: "rgba(255, 255, 255, 0.1)",
+              background: "var(--sidebar-hover)",
             } : {}}
           >
             <Icone size={19} strokeWidth={ativo ? 2.5 : 1.8} />

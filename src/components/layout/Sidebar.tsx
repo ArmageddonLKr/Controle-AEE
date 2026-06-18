@@ -10,7 +10,7 @@ import {
   Settings,
   Sun,
   Moon,
-  Users2,
+  Handshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTema } from "@/lib/theme";
@@ -18,7 +18,7 @@ import { useTema } from "@/lib/theme";
 const navItems = [
   { href: "/",           label: "Início",      icone: LayoutDashboard },
   { href: "/alunos",     label: "Crianças",    icone: Users },
-  { href: "/reunioes",   label: "Reuniões",    icone: Users2 },
+  { href: "/reunioes",   label: "Reuniões",    icone: Handshake },
   { href: "/calendario", label: "Calendário",  icone: Calendar },
   { href: "/relatorios", label: "Relatórios",  icone: BarChart3 },
   { href: "/configuracoes", label: "Configurações", icone: Settings },
@@ -41,7 +41,7 @@ export function Sidebar() {
       {/* Logo */}
       <div
         className="flex items-center gap-3 px-5 py-5"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ borderBottom: "1px solid var(--sidebar-border)" }}
       >
         <img
           src="/Controle-AEE/logo.svg"
@@ -49,20 +49,22 @@ export function Sidebar() {
           width={36}
           height={36}
           className="rounded-lg"
-          style={{ background: "rgba(255,255,255,0.1)", padding: "4px" }}
+          style={{ background: "var(--sidebar-hover)", padding: "4px" }}
         />
         <div>
-          <p className="text-sm font-bold text-white leading-tight">Controle AEE</p>
-          <p className="text-xs" style={{ color: "rgba(168, 196, 216, 0.7)" }}>
+          <p className="text-sm font-bold leading-tight" style={{ color: "var(--sidebar-fg)" }}>
+            Controle AEE
+          </p>
+          <p className="text-xs" style={{ color: "var(--sidebar-fg-muted)" }}>
             Gestão Educacional
           </p>
         </div>
       </div>
 
-      {/* Perfil da psicóloga — avatar usa a cor de destaque do tema */}
+      {/* Perfil — avatar usa a cor de destaque do tema */}
       <div
         className="flex items-center gap-3 px-5 py-4"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ borderBottom: "1px solid var(--sidebar-border)" }}
       >
         <div
           className="flex items-center justify-center rounded-full text-sm font-bold text-white flex-shrink-0"
@@ -75,9 +77,11 @@ export function Sidebar() {
           RD
         </div>
         <div className="overflow-hidden">
-          <p className="text-sm font-semibold text-white truncate">Rafaela Dias</p>
-          <p className="text-xs truncate" style={{ color: "rgba(168, 196, 216, 0.7)" }}>
-            Psicóloga
+          <p className="text-sm font-semibold truncate" style={{ color: "var(--sidebar-fg)" }}>
+            Rafaela Dias
+          </p>
+          <p className="text-xs" style={{ color: "var(--sidebar-fg-muted)", lineHeight: 1.3 }}>
+            Atendimento Educacional Especializado
           </p>
         </div>
       </div>
@@ -93,14 +97,12 @@ export function Sidebar() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                ativo
-                  ? "text-white"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
+                !ativo && "sidebar-link"
               )}
               style={
                 ativo
                   ? {
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      backgroundColor: "var(--sidebar-hover)",
                       color: "var(--accent-primary)",
                       borderLeft: "3px solid var(--accent-primary)",
                       paddingLeft: "calc(0.75rem - 3px)",
@@ -119,20 +121,22 @@ export function Sidebar() {
       {/* Rodapé com toggle de tema */}
       <div
         className="px-5 py-4 flex items-center justify-between"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ borderTop: "1px solid var(--sidebar-border)" }}
       >
-        <p className="text-xs" style={{ color: "rgba(168, 196, 216, 0.5)" }}>
-          v2.0 · Rayan
+        <p className="text-xs" style={{ color: "var(--sidebar-fg-muted)" }}>
+          v2.0
         </p>
         <button
           onClick={alternarTema}
-          className="flex items-center justify-center rounded-lg p-2 transition-all duration-200 hover:bg-white/10"
+          className="flex items-center justify-center rounded-lg p-2 transition-all duration-200"
+          style={{ minWidth: 36, minHeight: 36, background: "transparent" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sidebar-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           title={tema === "claro" ? "Ativar tema escuro" : "Ativar tema claro"}
           aria-label="Alternar tema"
-          style={{ minWidth: 36, minHeight: 36 }}
         >
           {tema === "claro" ? (
-            <Moon className="h-4 w-4" style={{ color: "rgba(168, 196, 216, 0.7)" }} />
+            <Moon className="h-4 w-4" style={{ color: "var(--sidebar-fg-muted)" }} />
           ) : (
             <Sun className="h-4 w-4 text-yellow-400" />
           )}

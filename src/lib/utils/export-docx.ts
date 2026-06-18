@@ -34,7 +34,7 @@ function cabecalhoDoc(): Paragraph[] {
     new Paragraph({
       children: [
         new TextRun({
-          text: "Rafaela Dias — Psicóloga | Atendimento Educacional Especializado",
+          text: "Rafaela Dias — Atendimento Educacional Especializado",
           size: 20,
           color: "4A6080",
         }),

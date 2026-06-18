@@ -62,14 +62,29 @@ function BadgeStatus({ status }: { status: Crianca["status"] }) {
 function BadgeDiagnostico({ texto }: { texto: string }) {
   return (
     <span
-      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+      className="rounded-lg px-2.5 py-1 text-xs font-medium"
       style={{
+        display: "inline-block",
+        maxWidth: "100%",
         backgroundColor: "var(--accent-light)",
         color: "var(--accent-primary)",
         border: "1px solid var(--accent-primary)",
       }}
     >
-      {texto}
+      {/* Diagnósticos longos são limitados a 2 linhas para caberem no card */}
+      <span
+        style={{
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          lineHeight: 1.35,
+          wordBreak: "break-word",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {texto}
+      </span>
     </span>
   );
 }

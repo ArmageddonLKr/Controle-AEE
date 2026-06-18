@@ -11,6 +11,7 @@ type Tema = "claro" | "escuro";
 interface CoresPrefs {
   corDestaque: string | null; // hex (ex.: "#EC4899") ou null = padrão do tema
   corTexto: string | null;    // hex ou null = padrão do tema
+  corNav: string | null;      // cor da barra de navegação (sidebar/bottom-nav) ou null = padrão
 }
 
 interface TemaContexto {
@@ -18,8 +19,10 @@ interface TemaContexto {
   alternarTema: () => void;
   corDestaque: string | null;
   corTexto: string | null;
+  corNav: string | null;
   definirCorDestaque: (cor: string | null) => void;
   definirCorTexto: (cor: string | null) => void;
+  definirCorNav: (cor: string | null) => void;
   restaurarCoresPadrao: () => void;
 }
 
@@ -28,8 +31,10 @@ const TemaContexto = createContext<TemaContexto>({
   alternarTema: () => {},
   corDestaque: null,
   corTexto: null,
+  corNav: null,
   definirCorDestaque: () => {},
   definirCorTexto: () => {},
+  definirCorNav: () => {},
   restaurarCoresPadrao: () => {},
 });
 
@@ -58,6 +63,15 @@ function clarear(hex: string, fator: number): string {
   return `rgb(${f(c.r)}, ${f(c.g)}, ${f(c.b)})`;
 }
 
+/** true quando a cor é clara o bastante para exigir texto escuro por cima */
+function corEhClara(hex: string): boolean {
+  const c = hexParaRgb(hex);
+  if (!c) return false;
+  // Luminância relativa percebida (0 = preto, 1 = branco)
+  const lum = (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) / 255;
+  return lum > 0.6;
+}
+
 // Aplica (ou remove) as variáveis CSS personalizadas no <html>
 function aplicarCores(prefs: CoresPrefs) {
   const raiz = document.documentElement.style;
@@ -81,6 +95,28 @@ function aplicarCores(prefs: CoresPrefs) {
     raiz.removeProperty("--text-secondary");
     raiz.removeProperty("--text-muted");
   }
+
+  // Cor da barra de navegação — recalcula o texto para manter contraste legível
+  if (prefs.corNav) {
+    raiz.setProperty("--bg-sidebar", prefs.corNav);
+    if (corEhClara(prefs.corNav)) {
+      raiz.setProperty("--sidebar-fg", "#1A2B45");
+      raiz.setProperty("--sidebar-fg-muted", "rgba(26,43,69,0.62)");
+      raiz.setProperty("--sidebar-border", "rgba(0,0,0,0.08)");
+      raiz.setProperty("--sidebar-hover", "rgba(0,0,0,0.05)");
+    } else {
+      raiz.setProperty("--sidebar-fg", "#FFFFFF");
+      raiz.setProperty("--sidebar-fg-muted", "rgba(255,255,255,0.72)");
+      raiz.setProperty("--sidebar-border", "rgba(255,255,255,0.10)");
+      raiz.setProperty("--sidebar-hover", "rgba(255,255,255,0.08)");
+    }
+  } else {
+    raiz.removeProperty("--bg-sidebar");
+    raiz.removeProperty("--sidebar-fg");
+    raiz.removeProperty("--sidebar-fg-muted");
+    raiz.removeProperty("--sidebar-border");
+    raiz.removeProperty("--sidebar-hover");
+  }
 }
 
 function lerCoresSalvas(): CoresPrefs {
@@ -91,17 +127,18 @@ function lerCoresSalvas(): CoresPrefs {
       return {
         corDestaque: typeof dados.corDestaque === "string" ? dados.corDestaque : null,
         corTexto: typeof dados.corTexto === "string" ? dados.corTexto : null,
+        corNav: typeof dados.corNav === "string" ? dados.corNav : null,
       };
     }
   } catch {
     // preferências corrompidas — volta ao padrão
   }
-  return { corDestaque: null, corTexto: null };
+  return { corDestaque: null, corTexto: null, corNav: null };
 }
 
 export function TemaProvider({ children }: { children: React.ReactNode }) {
   const [tema, setTema] = useState<Tema>("claro");
-  const [cores, setCores] = useState<CoresPrefs>({ corDestaque: null, corTexto: null });
+  const [cores, setCores] = useState<CoresPrefs>({ corDestaque: null, corTexto: null, corNav: null });
 
   useEffect(() => {
     const temaSalvo = localStorage.getItem(CHAVE_TEMA) as Tema | null;
@@ -162,8 +199,13 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
     [salvarCores]
   );
 
+  const definirCorNav = useCallback(
+    (cor: string | null) => salvarCores({ ...lerCoresSalvas(), corNav: cor }),
+    [salvarCores]
+  );
+
   const restaurarCoresPadrao = useCallback(
-    () => salvarCores({ corDestaque: null, corTexto: null }),
+    () => salvarCores({ corDestaque: null, corTexto: null, corNav: null }),
     [salvarCores]
   );
 
@@ -174,8 +216,10 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
         alternarTema,
         corDestaque: cores.corDestaque,
         corTexto: cores.corTexto,
+        corNav: cores.corNav,
         definirCorDestaque,
         definirCorTexto,
+        definirCorNav,
         restaurarCoresPadrao,
       }}
     >
