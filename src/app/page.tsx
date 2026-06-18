@@ -51,7 +51,10 @@ export default function Dashboard() {
     });
   }, [ativas, sessoes]);
 
-  const dataHoje  = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
+  const dataNumerica = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
+  const diaSemana    = format(new Date(), "EEEE", { locale: ptBR });
+  // Só a primeira letra maiúscula (ex.: "Quinta-feira"), mantendo "feira" minúsculo
+  const dataHoje  = `${diaSemana.charAt(0).toUpperCase()}${diaSemana.slice(1)}, ${dataNumerica}`;
   const saudacao  = getGreeting("Rafaela Dias");
   const temDados  = !loading && (criancas.length > 0 || sessoes.length > 0);
 
