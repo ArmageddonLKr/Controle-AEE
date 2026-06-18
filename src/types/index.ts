@@ -17,6 +17,8 @@ export interface Crianca {
   escola: string;
   turma: string;
   serie: string;
+  /** Pasta / nível em que a criança fica organizada na aba Crianças */
+  nivel?: string;
   turno: "manhã" | "tarde" | "integral";
   professorRegente?: string;
   diagnosticos: string[];

@@ -1,6 +1,7 @@
 // src/app/alunos/novo/page.tsx
 'use client';
 
+import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -8,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { addCrianca } from '@/lib/storage';
 import { hojeISO } from '@/lib/utils/date';
+import { NIVEIS } from '@/lib/niveis';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +26,7 @@ const formSchema = z.object({
   escola: z.string().optional(),
   turma: z.string().optional(),
   serie: z.string().optional(),
+  nivel: z.string().optional(),
   turno: z.enum(['manhã', 'tarde', 'integral']).optional(),
   diagnosticos: z.string().optional().transform(val => val ? val.split(',').map(s => s.trim()) : []),
   dataInicioAcompanhamento: z.string().refine(v => /^\d{4}-\d{2}-\d{2}$/.test(v), 'Data inválida (YYYY-MM-DD)'),
@@ -40,13 +43,19 @@ type FormData = z.infer<typeof formSchema>;
 export default function NovoAlunoPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors }, control } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: 'ativo',
       dataInicioAcompanhamento: hojeISO(),
     },
   });
+
+  // Pré-seleciona a pasta quando vem de "Adicionar criança nesta pasta"
+  useEffect(() => {
+    const n = new URLSearchParams(window.location.search).get('nivel');
+    if (n) setValue('nivel', n);
+  }, [setValue]);
 
   const onSubmit = async (data: FormData) => {
     const nova = addCrianca({
@@ -57,6 +66,7 @@ export default function NovoAlunoPage() {
       escola: data.escola ?? '',
       turma: data.turma ?? '',
       serie: data.serie ?? '',
+      nivel: data.nivel || undefined,
       turno: data.turno ?? 'manhã',
       diagnosticos: data.diagnosticos,
       cids: [],
@@ -150,6 +160,24 @@ export default function NovoAlunoPage() {
         <div className="space-y-4 border-t pt-6">
             <h2 className="text-xl font-semibold">Informações Escolares</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* PASTA / NÍVEL */}
+              <div className="md:col-span-2">
+                <Label>Pasta / Nível</Label>
+                <Controller
+                  name="nivel"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger><SelectValue placeholder="Escolha a pasta..." /></SelectTrigger>
+                      <SelectContent>
+                        {NIVEIS.map((n) => (
+                          <SelectItem key={n} value={n}>{n}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
               {/* ESCOLA */}
               <div>
                 <Label htmlFor="escola">Escola</Label>
