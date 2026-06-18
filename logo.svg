@@ -1,31 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
   <defs>
-    <clipPath id="globo"><circle cx="50" cy="62" r="29"/></clipPath>
+    <clipPath id="globo"><circle cx="50" cy="64" r="26"/></clipPath>
   </defs>
   <rect x="2" y="2" width="96" height="96" rx="22" fill="#EAF4FB"/>
   <g transform="translate(8,8) scale(0.84)">
     
-  <g stroke="#15243B" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#15243B" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
     <!-- Globo -->
-    <circle cx="50" cy="62" r="29" fill="#3E8FD0"/>
+    <circle cx="50" cy="64" r="26" fill="#3E8FD0"/>
     <!-- Continentes (recortados ao globo) -->
-    <g clip-path="url(#globo)" stroke-width="1.6">
-      <path d="M44,60 C42,53 53,51 56,58 C59,64 54,73 49,74 C43,76 41,67 44,60 Z" fill="#35C77E"/>
-      <path d="M30,64 C28,61 35,60 36,65 C37,69 31,71 30,67 Z" fill="#35C77E"/>
-      <path d="M61,71 C64,68 70,72 65,78 C61,82 57,75 61,71 Z" fill="#35C77E"/>
+    <g clip-path="url(#globo)" stroke-width="1.5">
+      <path d="M44,62 C42,55 54,53 57,60 C60,66 55,76 49,77 C43,78 41,69 44,62 Z" fill="#35C77E"/>
+      <path d="M30,66 C28,63 35,62 36,67 C37,71 31,73 30,69 Z" fill="#35C77E"/>
+      <path d="M60,74 C63,71 69,75 64,80 C60,84 56,77 60,74 Z" fill="#35C77E"/>
     </g>
     <!-- Brilho sutil do globo -->
-    <path d="M34,46 A29,29 0 0 1 50,33" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2.4" fill="none"/>
-    <!-- Base do capelo apoiada sobre o globo -->
-    <path d="M23,57 A29,29 0 0 1 77,57 C68,64 32,64 23,57 Z" fill="#2A3C5B"/>
-    <!-- Aba do capelo (losango) -->
-    <path d="M50,12 L86,28 L50,40 L14,28 Z" fill="#2A3C5B"/>
+    <path d="M32,54 A26,26 0 0 1 47,41" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2.2" fill="none"/>
+    <!-- Rebordo do capelo apoiado no topo do globo -->
+    <path d="M37,33 L63,33 L60,42 Q50,47 40,42 Z" fill="#2A3C5B"/>
+    <!-- Aba do capelo (losango) — centralizada sobre o globo -->
+    <path d="M50,11 L84,25 L50,39 L16,25 Z" fill="#2A3C5B"/>
     <!-- Botão central -->
-    <circle cx="50" cy="28" r="3.1" fill="#F2A41C"/>
+    <circle cx="50" cy="25" r="3" fill="#F2A41C"/>
     <!-- Cordão da borla -->
-    <path d="M50,28 L82,33 L82,52" fill="none" stroke="#F2A41C" stroke-width="3.2"/>
+    <path d="M50,25 L80,30 L80,49" fill="none" stroke="#F2A41C" stroke-width="3"/>
     <!-- Borla -->
-    <path d="M82,52 C78,53 78,53 78,58 L86,58 C86,53 86,53 82,52 Z" fill="#F2A41C"/>
+    <path d="M80,49 C76,50 76,50 76,55 L84,55 C84,50 84,50 80,49 Z" fill="#F2A41C"/>
   </g>
   </g>
 </svg>
