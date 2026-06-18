@@ -1,11 +1,18 @@
 // src/app/alunos/page.tsx
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { AlunoCard } from '@/components/shared/AlunoCard';
-import { Search, Users, UserPlus } from 'lucide-react';
+import { Search, Users, UserPlus, Folder, ChevronLeft, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 import { useCriancas } from '@/hooks/useAlunos';
+import { NIVEIS, SEM_PASTA, pastaDaCrianca } from '@/lib/niveis';
+import { getPastas, subscribe as subscribePastas, renomearPasta, adicionarPasta, removerPasta } from '@/lib/pastas';
+
+const PASTAS_SSR: string[] = [...NIVEIS];
+function usePastasStore(): string[] {
+  return useSyncExternalStore(subscribePastas, getPastas, () => PASTAS_SSR);
+}
 
 const STATUS_OPTS = [
   { valor: 'todos',   label: 'Todos' },
@@ -57,9 +64,24 @@ function EstadoSemResultado() {
 
 export default function AlunosPage() {
   const { criancas, loading } = useCriancas();
+  const listaPastas = usePastasStore();
   const [busca, setBusca] = useState('');
   const [statusFiltro, setStatusFiltro] = useState('todos');
+  const [pastaAberta, setPastaAberta] = useState<string | null>(null);
+  const [editandoPastas, setEditandoPastas] = useState(false);
+  // Diálogo de criar/renomear pasta
+  const [dialogo, setDialogo] = useState<{ tipo: 'novo' | 'renomear'; alvo?: string } | null>(null);
+  const [nomeInput, setNomeInput] = useState('');
 
+  // Permite chegar já filtrado por um link (ex.: card "Crianças ativas" → ?status=ativo)
+  useEffect(() => {
+    const s = new URLSearchParams(window.location.search).get('status');
+    if (s && ['todos', 'ativo', 'espera', 'inativo'].includes(s)) setStatusFiltro(s);
+  }, []);
+
+  const buscando = busca.trim().length > 0;
+
+  // Crianças após busca + status (ainda sem separar por pasta)
   const criancasFiltradas = useMemo(() => {
     return criancas.filter((c) => {
       const matchBusca = !busca || c.nome.toLowerCase().includes(busca.toLowerCase());
@@ -67,6 +89,49 @@ export default function AlunosPage() {
       return matchBusca && matchStatus;
     });
   }, [criancas, busca, statusFiltro]);
+
+  // Contagem por pasta (respeita o filtro de status)
+  const contagemPorPasta = useMemo(() => {
+    const mapa = new Map<string, number>();
+    criancasFiltradas.forEach((c) => {
+      const p = pastaDaCrianca(c.nivel);
+      mapa.set(p, (mapa.get(p) ?? 0) + 1);
+    });
+    return mapa;
+  }, [criancasFiltradas]);
+
+  // Lista de pastas a exibir: as definidas pela Rafaela + qualquer outra que
+  // já tenha crianças (inclui "Sem pasta")
+  const pastas = useMemo(() => {
+    const extras = Array.from(contagemPorPasta.keys()).filter((p) => !listaPastas.includes(p));
+    return [...listaPastas, ...extras.sort()];
+  }, [contagemPorPasta, listaPastas]);
+
+  function abrirNovaPasta() {
+    setDialogo({ tipo: 'novo' });
+    setNomeInput('');
+  }
+  function abrirRenomear(pasta: string) {
+    setDialogo({ tipo: 'renomear', alvo: pasta });
+    setNomeInput(pasta);
+  }
+  function confirmarDialogo() {
+    const nome = nomeInput.trim();
+    if (!nome) return;
+    if (dialogo?.tipo === 'novo') adicionarPasta(nome);
+    else if (dialogo?.tipo === 'renomear' && dialogo.alvo) renomearPasta(dialogo.alvo, nome);
+    setDialogo(null);
+  }
+  function excluirPasta(pasta: string) {
+    if (window.confirm(`Excluir a pasta "${pasta}"? As crianças dela voltam para "Sem pasta".`)) {
+      removerPasta(pasta);
+    }
+  }
+
+  const criancasDaPasta = useMemo(() => {
+    if (!pastaAberta) return [];
+    return criancasFiltradas.filter((c) => pastaDaCrianca(c.nivel) === pastaAberta);
+  }, [criancasFiltradas, pastaAberta]);
 
   if (loading) {
     return (
@@ -79,6 +144,11 @@ export default function AlunosPage() {
     );
   }
 
+  // Link para cadastrar já dentro de uma pasta
+  const linkNova = pastaAberta && pastaAberta !== SEM_PASTA
+    ? `/alunos/novo?nivel=${encodeURIComponent(pastaAberta)}`
+    : '/alunos/novo';
+
   return (
     <div>
       {/* Header */}
@@ -89,12 +159,14 @@ export default function AlunosPage() {
           </h1>
           {criancas.length > 0 && (
             <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
-              {criancasFiltradas.length} de {criancas.length} encontrada(s)
+              {pastaAberta && !buscando
+                ? `${criancasDaPasta.length} em ${pastaAberta}`
+                : `${criancasFiltradas.length} de ${criancas.length} encontrada(s)`}
             </p>
           )}
         </div>
         <Link
-          href="/alunos/novo"
+          href={linkNova}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex-shrink-0"
           style={{ background: "var(--accent-primary)" }}
         >
@@ -144,17 +216,192 @@ export default function AlunosPage() {
       {/* Conteúdo */}
       {criancas.length === 0 ? (
         <EstadoVazio />
-      ) : criancasFiltradas.length === 0 ? (
-        <EstadoSemResultado />
+      ) : buscando ? (
+        // Durante a busca, mostra resultados de todas as pastas
+        criancasFiltradas.length === 0 ? (
+          <EstadoSemResultado />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {criancasFiltradas.map((crianca, i) => (
+              <AlunoCard key={crianca.id} crianca={crianca} style={{ animationDelay: `${i * 40}ms` }} />
+            ))}
+          </div>
+        )
+      ) : pastaAberta === null ? (
+        // Grade de PASTAS
+        <div>
+          <div className="flex justify-end mb-3">
+            <button
+              onClick={() => setEditandoPastas((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all"
+              style={{
+                border: `1px solid ${editandoPastas ? "var(--accent-primary)" : "var(--border)"}`,
+                background: editandoPastas ? "var(--accent-light)" : "transparent",
+                color: editandoPastas ? "var(--accent-primary)" : "var(--text-secondary)",
+              }}
+            >
+              {editandoPastas ? <Check size={14} /> : <Pencil size={14} />}
+              {editandoPastas ? "Concluir" : "Gerenciar pastas"}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {pastas.map((pasta, i) => {
+              const qtd = contagemPorPasta.get(pasta) ?? 0;
+              const editavel = editandoPastas && pasta !== SEM_PASTA;
+              return (
+                <button
+                  key={pasta}
+                  onClick={() => setPastaAberta(pasta)}
+                  className="card-aee fade-slide-up relative flex flex-col items-start gap-3 p-5 text-left"
+                  style={{ animationDelay: `${i * 40}ms` }}
+                >
+                  {editavel && (
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); abrirRenomear(pasta); }}
+                        className="flex items-center justify-center rounded-lg"
+                        style={{ width: 28, height: 28, background: "var(--bg-primary)", color: "var(--text-secondary)" }}
+                        title="Renomear pasta"
+                      >
+                        <Pencil size={14} />
+                      </span>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); excluirPasta(pasta); }}
+                        className="flex items-center justify-center rounded-lg"
+                        style={{ width: 28, height: 28, background: "var(--bg-primary)", color: "var(--danger)" }}
+                        title="Excluir pasta"
+                      >
+                        <Trash2 size={14} />
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className="flex items-center justify-center rounded-xl"
+                    style={{ width: 48, height: 48, background: "var(--accent-light)", color: "var(--accent-primary)" }}
+                  >
+                    <Folder size={24} />
+                  </div>
+                  <div className="min-w-0 w-full">
+                    <p className="font-bold text-sm leading-snug" style={{ color: "var(--text-primary)" }}>
+                      {pasta}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                      {qtd} {qtd === 1 ? "criança" : "crianças"}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+
+            {/* Tile para criar nova pasta */}
+            {editandoPastas && (
+              <button
+                onClick={abrirNovaPasta}
+                className="fade-slide-up flex flex-col items-center justify-center gap-2 p-5 rounded-xl"
+                style={{ border: "2px dashed var(--border)", color: "var(--accent-primary)", minHeight: 120 }}
+              >
+                <Plus size={24} />
+                <span className="text-sm font-semibold">Nova pasta</span>
+              </button>
+            )}
+          </div>
+
+          {/* Diálogo de criar/renomear pasta */}
+          {dialogo && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              style={{ background: "rgba(0,0,0,0.45)" }}
+              onClick={() => setDialogo(null)}
+            >
+              <div
+                className="w-full max-w-sm rounded-2xl p-5"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 12px 40px rgba(0,0,0,0.25)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-sm" style={{ color: "var(--text-primary)" }}>
+                    {dialogo.tipo === "novo" ? "Nova pasta" : "Renomear pasta"}
+                  </h3>
+                  <button onClick={() => setDialogo(null)} style={{ color: "var(--text-muted)" }}>
+                    <X size={18} />
+                  </button>
+                </div>
+                <input
+                  autoFocus
+                  value={nomeInput}
+                  onChange={(e) => setNomeInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") confirmarDialogo(); }}
+                  placeholder="Nome da pasta"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm outline-none mb-4"
+                  style={{ background: "var(--bg-primary)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setDialogo(null)}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold"
+                    style={{ border: "1px solid var(--border)", color: "var(--text-secondary)" }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmarDialogo}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                    style={{ background: "var(--accent-primary)" }}
+                  >
+                    {dialogo.tipo === "novo" ? "Criar" : "Salvar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {criancasFiltradas.map((crianca, i) => (
-            <AlunoCard
-              key={crianca.id}
-              crianca={crianca}
-              style={{ animationDelay: `${i * 40}ms` }}
-            />
-          ))}
+        // Conteúdo de uma PASTA
+        <div>
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <button
+              onClick={() => setPastaAberta(null)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold"
+              style={{ color: "var(--accent-primary)" }}
+            >
+              <ChevronLeft size={16} /> Pastas
+            </button>
+            <h2 className="text-base font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+              <Folder size={18} style={{ color: "var(--accent-primary)" }} />
+              {pastaAberta}
+            </h2>
+          </div>
+
+          {criancasDaPasta.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center px-4 gap-3">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center"
+                style={{ background: "var(--accent-light)" }}
+              >
+                <Folder size={28} style={{ color: "var(--accent-primary)" }} />
+              </div>
+              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                Nenhuma criança nesta pasta ainda
+              </p>
+              <Link
+                href={linkNova}
+                className="mt-1 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "var(--accent-primary)" }}
+              >
+                <UserPlus size={16} /> Adicionar criança nesta pasta
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {criancasDaPasta.map((crianca, i) => (
+                <AlunoCard key={crianca.id} crianca={crianca} style={{ animationDelay: `${i * 40}ms` }} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

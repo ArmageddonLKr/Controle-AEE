@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useCriancaById } from '@/hooks/useAlunos';
 import { updateCrianca } from '@/lib/storage';
+import { NIVEIS } from '@/lib/niveis';
 
 const formSchema = z.object({
   nome: z.string().min(2, 'Nome é obrigatório'),
@@ -27,6 +28,7 @@ const formSchema = z.object({
   escola: z.string().optional(),
   turma: z.string().optional(),
   serie: z.string().optional(),
+  nivel: z.string().optional(),
   turno: z.enum(['manhã', 'tarde', 'integral']).optional(),
   professorRegente: z.string().optional(),
   diagnosticos: z.string().optional(),
@@ -84,6 +86,7 @@ function EditarForm({ id }: { id: string }) {
       escola: crianca.escola ?? '',
       turma: crianca.turma ?? '',
       serie: crianca.serie ?? '',
+      nivel: crianca.nivel ?? '',
       turno: crianca.turno ?? 'manhã',
       professorRegente: crianca.professorRegente ?? '',
       diagnosticos: crianca.diagnosticos.join(', '),
@@ -110,6 +113,7 @@ function EditarForm({ id }: { id: string }) {
       escola: data.escola ?? '',
       turma: data.turma ?? '',
       serie: data.serie ?? '',
+      nivel: data.nivel || undefined,
       turno: data.turno ?? 'manhã',
       professorRegente: data.professorRegente || undefined,
       diagnosticos: data.diagnosticos ? data.diagnosticos.split(',').map((s) => s.trim()).filter(Boolean) : [],
@@ -215,6 +219,19 @@ function EditarForm({ id }: { id: string }) {
         <section className="rounded-xl p-5 space-y-4" style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
           <h2 className="text-base font-bold" style={{ color: 'var(--accent-primary)' }}>🏫 Informações Escolares</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <Label className={labelCls}>Pasta / Nível</Label>
+              <Controller name="nivel" control={control} render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Escolha a pasta..." /></SelectTrigger>
+                  <SelectContent>
+                    {NIVEIS.map((n) => (
+                      <SelectItem key={n} value={n}>{n}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )} />
+            </div>
             <div className="sm:col-span-2">
               <Label className={labelCls} htmlFor="escola">Escola</Label>
               <Input id="escola" {...register('escola')} className="mt-1" />

@@ -4,6 +4,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTema } from "@/lib/theme";
 
 // ---------------------------------------------------------------------------
@@ -35,17 +36,23 @@ function hexParaRgba(hex: string, alfa: number): string {
 
 export interface StatCardProps {
   titulo: string;
-  valor: string | number;
+  valor: React.ReactNode;
   icone: React.ReactNode;
   descricao?: string;
   cor?: keyof typeof COR_MAP;
+  className?: string;
+  style?: React.CSSProperties;
+  /** Destino ao tocar no card (a tela relacionada, já filtrada) */
+  href?: string;
 }
 
-export function StatCard({ titulo, valor, icone, descricao, cor = "azul" }: StatCardProps) {
+export function StatCard({ titulo, valor, icone, descricao, cor = "azul", className = "", style, href }: StatCardProps) {
+  const router = useRouter();
   const { corCards, definirCorCards } = useTema();
   const [seletorAberto, setSeletorAberto] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inicioRef = useRef<{ x: number; y: number } | null>(null);
+  const longPressRef = useRef(false);
 
   // Cor efetiva: a escolhida (vale para todos) ou a cor variada padrão
   const circulo = corCards ? hexParaRgba(corCards, 0.16) : COR_MAP[cor].circulo;
@@ -60,8 +67,12 @@ export function StatCard({ titulo, valor, icone, descricao, cor = "azul" }: Stat
 
   function aoPressionar(e: React.PointerEvent) {
     inicioRef.current = { x: e.clientX, y: e.clientY };
+    longPressRef.current = false;
     limparTimer();
-    timerRef.current = setTimeout(() => setSeletorAberto(true), 500);
+    timerRef.current = setTimeout(() => {
+      longPressRef.current = true; // marca que foi long-press para não navegar
+      setSeletorAberto(true);
+    }, 500);
   }
 
   function aoMover(e: React.PointerEvent) {
@@ -72,6 +83,15 @@ export function StatCard({ titulo, valor, icone, descricao, cor = "azul" }: Stat
     if (dx > 10 || dy > 10) limparTimer();
   }
 
+  function aoClicar() {
+    // Não navega quando foi long-press (abriu o seletor de cor)
+    if (seletorAberto || longPressRef.current) {
+      longPressRef.current = false;
+      return;
+    }
+    if (href) router.push(href);
+  }
+
   function escolher(c: string | null) {
     definirCorCards(c);
     setSeletorAberto(false);
@@ -79,15 +99,19 @@ export function StatCard({ titulo, valor, icone, descricao, cor = "azul" }: Stat
 
   return (
     <div
-      className="card-aee flex items-start gap-4 p-5 relative"
-      style={{ touchAction: "pan-y" }}
+      className={`card-aee flex items-start gap-4 p-5 relative ${className}`}
+      style={{ touchAction: "pan-y", cursor: href ? "pointer" : "default", ...style }}
       onPointerDown={aoPressionar}
       onPointerMove={aoMover}
       onPointerUp={limparTimer}
       onPointerCancel={limparTimer}
       onPointerLeave={limparTimer}
+      onClick={aoClicar}
       onContextMenu={(e) => { e.preventDefault(); setSeletorAberto(true); }}
-      title="Segure para mudar a cor dos cards"
+      role={href ? "button" : undefined}
+      tabIndex={href ? 0 : undefined}
+      onKeyDown={href ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); router.push(href); } } : undefined}
+      title={href ? "Toque para ver · segure para mudar a cor" : "Segure para mudar a cor dos cards"}
     >
       {/* Círculo colorido com ícone */}
       <div
@@ -120,6 +144,7 @@ export function StatCard({ titulo, valor, icone, descricao, cor = "azul" }: Stat
           <div
             className="fixed inset-0 z-40"
             onPointerDown={(e) => { e.stopPropagation(); setSeletorAberto(false); }}
+            onClick={(e) => e.stopPropagation()}
           />
           <div
             className="absolute z-50 left-3 top-3 rounded-xl p-3"
@@ -130,6 +155,7 @@ export function StatCard({ titulo, valor, icone, descricao, cor = "azul" }: Stat
               minWidth: 220,
             }}
             onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
           >
             <p className="text-xs font-bold mb-2" style={{ color: "var(--text-primary)" }}>
