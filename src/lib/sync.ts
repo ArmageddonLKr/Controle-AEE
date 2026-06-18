@@ -17,6 +17,9 @@ import type { Crianca, Sessao, Evolucao, Reuniao } from '@/types';
 
 const CODIGO_ACESSO = 'rafa2026';
 const CHAVE_FILA = 'controle-aee:fila-sync';
+const CHAVE_TEMA = 'tema-controle-aee';
+const CHAVE_CORES = 'controle-aee:cores';
+const CHAVE_PASTAS = 'controle-aee:pastas';
 export const EVENTO_PREFS = 'controle-aee:prefs-da-nuvem';
 
 interface OpSync {
@@ -107,12 +110,15 @@ export async function puxarDaNuvem(): Promise<boolean> {
 
     if (nuvem.preferencias) {
       try {
-        const prefs = nuvem.preferencias as { tema?: string; cores?: unknown };
+        const prefs = nuvem.preferencias as { tema?: string; cores?: unknown; pastas?: unknown };
         if (prefs.tema === 'claro' || prefs.tema === 'escuro') {
-          window.localStorage.setItem('tema-controle-aee', prefs.tema);
+          window.localStorage.setItem(CHAVE_TEMA, prefs.tema);
         }
         if (prefs.cores) {
-          window.localStorage.setItem('controle-aee:cores', JSON.stringify(prefs.cores));
+          window.localStorage.setItem(CHAVE_CORES, JSON.stringify(prefs.cores));
+        }
+        if (Array.isArray(prefs.pastas)) {
+          window.localStorage.setItem(CHAVE_PASTAS, JSON.stringify(prefs.pastas));
         }
         window.dispatchEvent(new Event(EVENTO_PREFS));
       } catch {
@@ -167,12 +173,15 @@ async function sincronizarInicial() {
 
       if (nuvem.preferencias) {
         try {
-          const prefs = nuvem.preferencias as { tema?: string; cores?: unknown };
+          const prefs = nuvem.preferencias as { tema?: string; cores?: unknown; pastas?: unknown };
           if (prefs.tema === 'claro' || prefs.tema === 'escuro') {
-            window.localStorage.setItem('tema-controle-aee', prefs.tema);
+            window.localStorage.setItem(CHAVE_TEMA, prefs.tema);
           }
           if (prefs.cores) {
-            window.localStorage.setItem('controle-aee:cores', JSON.stringify(prefs.cores));
+            window.localStorage.setItem(CHAVE_CORES, JSON.stringify(prefs.cores));
+          }
+          if (Array.isArray(prefs.pastas)) {
+            window.localStorage.setItem(CHAVE_PASTAS, JSON.stringify(prefs.pastas));
           }
           window.dispatchEvent(new Event(EVENTO_PREFS));
         } catch {
@@ -185,9 +194,17 @@ async function sincronizarInicial() {
   }
 }
 
-// ── Preferências (tema/cores) → nuvem ───────────────────────────────────────
-export function sincronizarPreferencias(prefs: { tema: string; cores: unknown }) {
-  enfileirar({ tipo: 'upsert', tabela: 'preferencias', id: 'rafaela', dados: prefs });
+// ── Preferências (tema/cores/pastas) → nuvem ─────────────────────────────────
+// Monta o pacote completo de preferências a partir do localStorage e envia.
+// Tema, cores e pastas (níveis) compartilham a mesma "linha" de preferências.
+export function sincronizarPrefs() {
+  if (typeof window === 'undefined') return;
+  const tema = window.localStorage.getItem(CHAVE_TEMA) ?? 'claro';
+  let cores: unknown = null;
+  let pastas: unknown = null;
+  try { cores = JSON.parse(window.localStorage.getItem(CHAVE_CORES) ?? 'null'); } catch { /* ignora */ }
+  try { pastas = JSON.parse(window.localStorage.getItem(CHAVE_PASTAS) ?? 'null'); } catch { /* ignora */ }
+  enfileirar({ tipo: 'upsert', tabela: 'preferencias', id: 'rafaela', dados: { tema, cores, pastas } });
 }
 
 // ── Desativação (raramente usada) ───────────────────────────────────────────
