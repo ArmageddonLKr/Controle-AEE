@@ -11,6 +11,7 @@ import { StatCard } from "@/components/shared/StatCard";
 import { BirthdayAlert } from "@/components/shared/BirthdayAlert";
 import { getGreeting } from "@/lib/utils/greeting";
 import { getAniversariosProximos, isAniversarioHoje } from "@/lib/utils/birthday";
+import { parseDataLocal } from "@/lib/utils/date";
 import { useCriancas, useTodasSessoes } from "@/hooks/useAlunos";
 
 const TIPO_LABEL: Record<string, string> = {
@@ -33,7 +34,7 @@ export default function Dashboard() {
   const sessoesMes = useMemo(() => {
     const hoje = new Date();
     const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    return sessoes.filter(s => new Date(s.data) >= primeiroDia);
+    return sessoes.filter(s => parseDataLocal(s.data) >= primeiroDia);
   }, [sessoes]);
 
   const aniversariosProximos = useMemo(() => getAniversariosProximos(criancas, 7), [criancas]);
@@ -46,7 +47,7 @@ export default function Dashboard() {
       const sessoesC = sessoes.filter(s => s.criancaId === c.id);
       if (sessoesC.length === 0) return true;
       const ultima = [...sessoesC].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
-      return new Date(ultima.data) < limite;
+      return parseDataLocal(ultima.data) < limite;
     });
   }, [ativas, sessoes]);
 
@@ -198,7 +199,7 @@ export default function Dashboard() {
                           {crianca.nome}
                         </p>
                         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                          {format(new Date(sessao.data), "dd/MM/yyyy")} · {TIPO_LABEL[sessao.tipo]}
+                          {format(parseDataLocal(sessao.data), "dd/MM/yyyy")} · {TIPO_LABEL[sessao.tipo]}
                         </p>
                       </div>
                       <Badge variant={sessao.presente ? 'success' : 'destructive'}>

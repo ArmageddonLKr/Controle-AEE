@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale';
 import { useSessoesByCriancaId } from '@/hooks/useAlunos';
 import { removeSessao } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { parseDataLocal } from '@/lib/utils/date';
 import EditSessaoForm from './EditSessaoForm';
 
 interface SessoesListProps {
@@ -75,7 +76,7 @@ export default function SessoesList({ criancaId }: SessoesListProps) {
             <div className="flex justify-between items-start flex-wrap gap-2">
               <div>
                 <p className="font-semibold capitalize">
-                  {format(new Date(sessao.data), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {format(parseDataLocal(sessao.data), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Tipo: <Badge variant="secondary">{sessao.tipo}</Badge> | Duração: {sessao.duracao} min

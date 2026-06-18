@@ -14,8 +14,11 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { updateReuniao, removeReuniao } from '@/lib/storage';
+import { useCriancas } from '@/hooks/useAlunos';
+import { parseDataLocal } from '@/lib/utils/date';
 import FormReuniao from '@/components/shared/ReuniaoForm';
 import type { Reuniao } from '@/types';
+import Link from 'next/link';
 
 export const TIPO_INFO: Record<Reuniao['tipo'], { label: string; cor: string; bg: string }> = {
   pedagogica:        { label: 'Pedagógica',       cor: '#4A9EBF', bg: 'rgba(74,158,191,0.12)' },
@@ -27,12 +30,18 @@ export const TIPO_INFO: Record<Reuniao['tipo'], { label: string; cor: string; bg
 
 export default function CardReuniao({ reuniao }: { reuniao: Reuniao }) {
   const { toast } = useToast();
+  const { criancas } = useCriancas();
   const [aberto, setAberto] = useState(false);
   const [editAberto, setEditAberto] = useState(false);
   const info = TIPO_INFO[reuniao.tipo];
 
-  const dataFormatada = format(new Date(reuniao.data + 'T12:00:00'), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
-  const diaSemana = format(new Date(reuniao.data + 'T12:00:00'), 'EEEE', { locale: ptBR });
+  // Crianças vinculadas a esta reunião (conecta a página de Reuniões ao perfil)
+  const criancasVinculadas = (reuniao.criancasRelacionadas ?? [])
+    .map((id) => criancas.find((c) => c.id === id))
+    .filter((c): c is NonNullable<typeof c> => Boolean(c));
+
+  const dataFormatada = format(parseDataLocal(reuniao.data), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const diaSemana = format(parseDataLocal(reuniao.data), 'EEEE', { locale: ptBR });
   const horas = Math.floor(reuniao.duracao / 60);
   const minutos = reuniao.duracao % 60;
   const duracaoStr = horas > 0
@@ -125,6 +134,25 @@ export default function CardReuniao({ reuniao }: { reuniao: Reuniao }) {
             </div>
           )}
         </div>
+
+        {/* Crianças vinculadas — leva ao perfil de cada uma */}
+        {criancasVinculadas.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Crianças:
+            </span>
+            {criancasVinculadas.map((c) => (
+              <Link
+                key={c.id}
+                href={`/alunos/perfil/?id=${c.id}`}
+                className="text-xs font-medium rounded-full px-2 py-0.5 transition-opacity hover:opacity-80"
+                style={{ background: 'var(--accent-light)', color: 'var(--accent-primary)' }}
+              >
+                {c.nome.split(' ')[0]}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Anotações com toggle expand */}
         {reuniao.anotacoes && (

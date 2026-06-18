@@ -6,6 +6,7 @@ import {
   startOfDay,
 } from "date-fns";
 import type { Crianca } from "@/types";
+import { parseDataLocal } from "./date";
 
 export function getAniversariosProximos(criancas: Crianca[], diasAdiante = 7) {
   const hoje = startOfDay(new Date());
@@ -14,7 +15,7 @@ export function getAniversariosProximos(criancas: Crianca[], diasAdiante = 7) {
   return criancas
     .filter((c) => c.status === "ativo" && c.dataNascimento)
     .map((c) => {
-      const nasc = new Date(c.dataNascimento);
+      const nasc = parseDataLocal(c.dataNascimento);
       let proximoAniv = setYear(
         new Date(nasc.getFullYear(), nasc.getMonth(), nasc.getDate()),
         ano
@@ -30,19 +31,19 @@ export function getAniversariosProximos(criancas: Crianca[], diasAdiante = 7) {
 }
 
 export function calcularIdade(dataNascimento: string): number {
-  return differenceInYears(new Date(), new Date(dataNascimento));
+  return differenceInYears(new Date(), parseDataLocal(dataNascimento));
 }
 
 export function isAniversarioHoje(dataNascimento: string): boolean {
   const hoje = new Date();
-  const nasc = new Date(dataNascimento);
+  const nasc = parseDataLocal(dataNascimento);
   return nasc.getMonth() === hoje.getMonth() && nasc.getDate() === hoje.getDate();
 }
 
 export function diasAteAniversario(dataNascimento: string): number {
   const hoje = startOfDay(new Date());
   const ano = hoje.getFullYear();
-  const nasc = new Date(dataNascimento);
+  const nasc = parseDataLocal(dataNascimento);
   let proximoAniv = setYear(
     new Date(nasc.getFullYear(), nasc.getMonth(), nasc.getDate()),
     ano

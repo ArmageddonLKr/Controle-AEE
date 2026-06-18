@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { addCrianca } from '@/lib/storage';
+import { hojeISO } from '@/lib/utils/date';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,7 @@ export default function NovoAlunoPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: 'ativo',
-      dataInicioAcompanhamento: new Date().toISOString().split('T')[0],
+      dataInicioAcompanhamento: hojeISO(),
     },
   });
 

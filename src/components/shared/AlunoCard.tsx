@@ -5,6 +5,7 @@ import Link from "next/link";
 import { differenceInYears } from "date-fns";
 import type { Crianca } from "@/types";
 import { diasAteAniversario } from "@/lib/utils/birthday";
+import { parseDataLocal } from "@/lib/utils/date";
 
 // ---------------------------------------------------------------------------
 // Paleta de cores determinística para o avatar (vibrantes, mas não gritantes)
@@ -105,7 +106,7 @@ export function AlunoCard({ crianca, style }: AlunoCardProps) {
   const { bg, text } = avatarColorParaNome(crianca.nome);
   const iniciais = iniciaisDoNome(crianca.nome);
 
-  const idade = differenceInYears(new Date(), new Date(crianca.dataNascimento));
+  const idade = differenceInYears(new Date(), parseDataLocal(crianca.dataNascimento));
   const diasAniv = diasAteAniversario(crianca.dataNascimento);
   const aniversarioProximo = diasAniv <= 7;
   const aniversarioHoje = diasAniv === 0;
