@@ -51,7 +51,7 @@ export default function Dashboard() {
     });
   }, [ativas, sessoes]);
 
-  const dataHoje  = format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  const dataHoje  = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
   const saudacao  = getGreeting("Rafaela Dias");
   const temDados  = !loading && (criancas.length > 0 || sessoes.length > 0);
 
@@ -60,10 +60,10 @@ export default function Dashboard() {
 
       {/* ── Cabeçalho ── */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
+        <h1 className="text-3xl md:text-4xl font-extrabold leading-tight" style={{ color: "var(--accent-primary)" }}>
           {saudacao}
         </h1>
-        <p className="text-sm mt-1 capitalize" style={{ color: "var(--text-muted)" }}>
+        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
           {dataHoje}
         </p>
       </div>
