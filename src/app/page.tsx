@@ -8,6 +8,8 @@ import { ptBR } from "date-fns/locale";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/shared/StatCard";
+import { NumeroAnimado } from "@/components/shared/NumeroAnimado";
+import { Confete } from "@/components/shared/Confete";
 import { BirthdayAlert } from "@/components/shared/BirthdayAlert";
 import { getGreeting } from "@/lib/utils/greeting";
 import { getAniversariosProximos, isAniversarioHoje } from "@/lib/utils/birthday";
@@ -74,14 +76,15 @@ export default function Dashboard() {
       {/* ── Alerta de aniversário hoje ── */}
       {aniversariosHoje.length > 0 && (
         <div
-          className="rounded-xl p-4 flex items-center gap-3"
+          className="rounded-xl p-4 flex items-center gap-3 relative overflow-hidden"
           style={{
             background: "var(--accent-light)",
             border: "1px solid rgba(74,158,191,0.2)",
           }}
         >
-          <span className="text-3xl">🎉</span>
-          <div>
+          <Confete />
+          <span className="text-3xl relative z-[2]">🎉</span>
+          <div className="relative z-[2]">
             <p className="font-bold text-sm md:text-base" style={{ color: "var(--accent-primary)" }}>
               {aniversariosHoje.length === 1
                 ? `Hoje é aniversário de ${aniversariosHoje[0].nome.split(" ")[0]}!`
@@ -96,13 +99,13 @@ export default function Dashboard() {
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <StatCard titulo="Crianças ativas"       valor={ativas.length}               icone={<Users    size={20} />} cor="azul"  />
-        <StatCard titulo="Sessões este mês"       valor={sessoesMes.length}           icone={<Calendar size={20} />} cor="verde" />
-        <StatCard titulo="Aniversários (7 dias)"  valor={aniversariosProximos.length} icone={<Star     size={20} />} cor="ambar" />
-        <StatCard titulo="Total de sessões"        valor={sessoes.length}             icone={<Clock    size={20} />} cor="roxo"  />
+        <StatCard href="/alunos?status=ativo"    className="fade-slide-up" style={{ animationDelay: "0ms" }}   titulo="Crianças ativas"      valor={<NumeroAnimado value={ativas.length} />}               icone={<Users    size={20} />} cor="azul"  />
+        <StatCard href="/relatorios?preset=este_mes" className="fade-slide-up" style={{ animationDelay: "60ms" }}  titulo="Sessões este mês"     valor={<NumeroAnimado value={sessoesMes.length} />}           icone={<Calendar size={20} />} cor="verde" />
+        <StatCard href="/calendario"             className="fade-slide-up" style={{ animationDelay: "120ms" }} titulo="Aniversários (7 dias)" valor={<NumeroAnimado value={aniversariosProximos.length} />} icone={<Star     size={20} />} cor="ambar" />
+        <StatCard href="/relatorios?preset=todas" className="fade-slide-up" style={{ animationDelay: "180ms" }} titulo="Total de sessões"    valor={<NumeroAnimado value={sessoes.length} />}             icone={<Clock    size={20} />} cor="roxo"  />
       </div>
       <p className="text-xs -mt-1" style={{ color: "var(--text-muted)" }}>
-        Dica: segure o dedo em um card para mudar a cor de todos.
+        Toque em um card para ver os detalhes · segure para mudar a cor de todos.
       </p>
 
       {/* ── Estado vazio — sem dados ainda ── */}

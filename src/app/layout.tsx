@@ -5,6 +5,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { Toaster } from "@/components/ui/toaster";
 import { TemaProvider } from "@/lib/theme";
 import { ClientInit } from "@/components/ClientInit";
+import { PageTransition } from "@/components/layout/PageTransition";
 
 export const metadata: Metadata = {
   title: "Controle AEE",
@@ -53,7 +54,9 @@ export default function RootLayout({
                          md:px-8 md:py-8"
               style={{ backgroundColor: "var(--bg-primary)" }}
             >
-              <div className="max-w-7xl mx-auto w-full">{children}</div>
+              <div className="max-w-7xl mx-auto w-full">
+                <PageTransition>{children}</PageTransition>
+              </div>
             </main>
           </div>
 

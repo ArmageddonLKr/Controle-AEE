@@ -1,7 +1,7 @@
 // src/app/alunos/page.tsx
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { AlunoCard } from '@/components/shared/AlunoCard';
 import { Search, Users, UserPlus } from 'lucide-react';
@@ -59,6 +59,12 @@ export default function AlunosPage() {
   const { criancas, loading } = useCriancas();
   const [busca, setBusca] = useState('');
   const [statusFiltro, setStatusFiltro] = useState('todos');
+
+  // Permite chegar já filtrado por um link (ex.: card "Crianças ativas" → ?status=ativo)
+  useEffect(() => {
+    const s = new URLSearchParams(window.location.search).get('status');
+    if (s && ['todos', 'ativo', 'espera', 'inativo'].includes(s)) setStatusFiltro(s);
+  }, []);
 
   const criancasFiltradas = useMemo(() => {
     return criancas.filter((c) => {

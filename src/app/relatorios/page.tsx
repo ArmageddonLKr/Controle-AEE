@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Download, Search, Loader2 } from "lucide-react";
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -21,6 +21,7 @@ const TIPO_LABEL: Record<string, string> = {
 };
 
 const PRESETS = [
+  { label: "Todas", value: "todas" },
   { label: "Este mês", value: "este_mes" },
   { label: "Mês anterior", value: "mes_anterior" },
   { label: "Último semestre", value: "semestre" },
@@ -36,6 +37,7 @@ function getNomeCrianca(criancaId: string, nomes: Map<string, string>): string {
 
 function getIntervaloPreset(preset: string): { inicio: Date; fim: Date } {
   const hoje = new Date();
+  if (preset === "todas") return { inicio: new Date(2000, 0, 1), fim: hoje };
   if (preset === "este_mes") return { inicio: startOfMonth(hoje), fim: endOfMonth(hoje) };
   if (preset === "mes_anterior") {
     const ant = subMonths(hoje, 1);
@@ -60,6 +62,13 @@ export default function RelatoriosPage() {
 
   // ---- Estado dos filtros ----
   const [preset, setPreset] = useState<string>("este_mes");
+
+  // Permite chegar já com um período pré-selecionado por link
+  // (ex.: card "Total de sessões" → ?preset=todas)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("preset");
+    if (p && PRESETS.some((x) => x.value === p)) setPreset(p);
+  }, []);
   const [dataInicio, setDataInicio] = useState<string>(
     format(startOfMonth(new Date()), "yyyy-MM-dd")
   );
