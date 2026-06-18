@@ -93,6 +93,22 @@ export const useReunioes = () => {
   return { reunioes: reunioesOrdenadas, loading: !montado };
 };
 
+// Hook para as reuniões vinculadas a uma criança específica
+export const useReunioesByCriancaId = (criancaId: string | undefined) => {
+  const reunioes = useSyncExternalStore(storage.subscribe, storage.getReunioesAll, () => SEM_REUNIOES);
+  const montado = useMontado();
+  const doAluno = useMemo(
+    () =>
+      criancaId
+        ? [...reunioes]
+            .filter((r) => r.criancasRelacionadas?.includes(criancaId))
+            .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+        : SEM_REUNIOES,
+    [reunioes, criancaId]
+  );
+  return { reunioes: doAluno, loading: !montado };
+};
+
 // Hook para dados do dashboard
 export const useDashboard = () => {
   const sessoes = useSessoesStore();

@@ -7,21 +7,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { differenceInYears, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ArrowLeft, Pencil, Phone, Trash2, UserX } from 'lucide-react';
+import {
+  ArrowLeft, Pencil, Phone, Trash2, UserX, AlertTriangle,
+  NotebookPen, TrendingUp, Info, Download, Handshake, PlusCircle,
+  Users, School, Stethoscope,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useCriancaById, useSessoesByCriancaId, useEvolucoesByCriancaId } from '@/hooks/useAlunos';
-import { removeCrianca, removeEvolucao } from '@/lib/storage';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  useCriancaById, useSessoesByCriancaId, useEvolucoesByCriancaId, useReunioesByCriancaId,
+} from '@/hooks/useAlunos';
+import { removeCrianca, removeEvolucao, addReuniao } from '@/lib/storage';
 import EditEvolucaoForm from '@/components/shared/EditEvolucaoForm';
 import { useToast } from '@/hooks/use-toast';
 import { ExportButton } from '@/components/shared/ExportButton';
 import SessoesList from '@/components/shared/SessoesList';
 import AddSessaoForm from '@/components/shared/AddSessaoForm';
 import AddEvolucaoForm from '@/components/shared/AddEvolucaoForm';
+import FormReuniao from '@/components/shared/ReuniaoForm';
+import CardReuniao from '@/components/shared/ReuniaoCard';
 import { exportarFichaCriancaPDF } from '@/lib/utils/export-pdf';
 import { exportarFichaCriancaDocx } from '@/lib/utils/export-docx';
+import type { Reuniao } from '@/types';
 
 const STATUS_LABEL = { ativo: 'Ativo', espera: 'Em espera', inativo: 'Inativo' } as const;
 const TURNO_LABEL = { 'manhã': 'Manhã', tarde: 'Tarde', integral: 'Integral' } as const;
@@ -74,7 +86,9 @@ export default function AlunoPerfil({ id }: { id?: string }) {
   const { crianca, loading } = useCriancaById(id);
   const { sessoes } = useSessoesByCriancaId(id);
   const { evolucoes } = useEvolucoesByCriancaId(id);
+  const { reunioes } = useReunioesByCriancaId(id);
   const [excluindo, setExcluindo] = useState(false);
+  const [novaReuniaoAberta, setNovaReuniaoAberta] = useState(false);
 
   if (loading) return <Carregando />;
   if (!crianca) return <NaoEncontrada />;
@@ -94,6 +108,12 @@ export default function AlunoPerfil({ id }: { id?: string }) {
       description: `${crianca.nome} e todos os registros vinculados foram excluídos.`,
     });
     router.push('/alunos');
+  }
+
+  function handleNovaReuniao(dados: Omit<Reuniao, 'id'>) {
+    addReuniao(dados);
+    toast({ title: 'Reunião registrada!', description: 'O encontro foi vinculado a esta criança.' });
+    setNovaReuniaoAberta(false);
   }
 
   return (
@@ -151,7 +171,17 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {crianca.diagnosticos.map((d) => (
-                      <Badge key={d} variant="secondary">{d}</Badge>
+                      <span
+                        key={d}
+                        className="chip-wrap rounded-lg px-2.5 py-1 text-xs font-medium"
+                        style={{
+                          background: 'var(--accent-light)',
+                          color: 'var(--accent-primary)',
+                          border: '1px solid var(--border)',
+                        }}
+                      >
+                        {d}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -162,7 +192,9 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                   className="mt-3 rounded-lg p-3 text-sm"
                   style={{ background: 'rgba(240,165,0,0.1)', border: '1px solid rgba(240,165,0,0.35)', color: 'var(--text-primary)' }}
                 >
-                  <p className="font-semibold mb-1" style={{ color: 'var(--warning)' }}>⚠️ Observações importantes</p>
+                  <p className="font-semibold mb-1 flex items-center gap-1.5" style={{ color: 'var(--warning)' }}>
+                    <AlertTriangle size={14} /> Observações importantes
+                  </p>
                   {crianca.observacoesImportantes}
                 </div>
               )}
@@ -194,10 +226,21 @@ export default function AlunoPerfil({ id }: { id?: string }) {
         <main className="lg:col-span-3">
           <Tabs defaultValue="sessoes">
             <TabsList className="mb-4 flex-wrap h-auto">
-              <TabsTrigger value="sessoes">📓 Sessões ({sessoes.length})</TabsTrigger>
-              <TabsTrigger value="evolucao">📈 Evolução ({evolucoes.length})</TabsTrigger>
-              <TabsTrigger value="informacoes">📋 Informações</TabsTrigger>
-              <TabsTrigger value="exportar">📤 Exportar</TabsTrigger>
+              <TabsTrigger value="sessoes" className="gap-1.5">
+                <NotebookPen size={15} /> Sessões ({sessoes.length})
+              </TabsTrigger>
+              <TabsTrigger value="evolucao" className="gap-1.5">
+                <TrendingUp size={15} /> Evolução ({evolucoes.length})
+              </TabsTrigger>
+              <TabsTrigger value="reunioes" className="gap-1.5">
+                <Handshake size={15} /> Reuniões ({reunioes.length})
+              </TabsTrigger>
+              <TabsTrigger value="informacoes" className="gap-1.5">
+                <Info size={15} /> Informações
+              </TabsTrigger>
+              <TabsTrigger value="exportar" className="gap-1.5">
+                <Download size={15} /> Exportar
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="sessoes">
@@ -277,13 +320,49 @@ export default function AlunoPerfil({ id }: { id?: string }) {
               </Card>
             </TabsContent>
 
+            <TabsContent value="reunioes">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
+                  <CardTitle>Reuniões da Criança</CardTitle>
+                  <Dialog open={novaReuniaoAberta} onOpenChange={setNovaReuniaoAberta}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" style={{ background: 'var(--accent-primary)' }} className="text-white hover:opacity-90">
+                        <PlusCircle className="mr-1.5 h-4 w-4" /> Nova Reunião
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Registrar Reunião — {crianca.nome.split(' ')[0]}</DialogTitle>
+                      </DialogHeader>
+                      <FormReuniao
+                        criancaIdFixa={crianca.id}
+                        onSalvar={handleNovaReuniao}
+                        onFechar={() => setNovaReuniaoAberta(false)}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  {reunioes.length === 0 ? (
+                    <p className="text-sm py-8 text-center" style={{ color: 'var(--text-muted)' }}>
+                      Nenhuma reunião vinculada a esta criança ainda. Use o botão acima para registrar a primeira.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                      {reunioes.map((r) => <CardReuniao key={r.id} reuniao={r} />)}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="informacoes">
               <Card>
                 <CardHeader><CardTitle>Informações Completas</CardTitle></CardHeader>
                 <CardContent className="space-y-5">
                   <div>
-                    <h3 className="font-semibold text-sm mb-2" style={{ color: 'var(--accent-primary)' }}>
-                      👨‍👩‍👧 Responsáveis
+                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--accent-primary)' }}>
+                      <Users size={15} /> Responsáveis
                     </h3>
                     {crianca.responsaveis.length === 0 ? (
                       <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Nenhum responsável cadastrado.</p>
@@ -306,8 +385,8 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-sm mb-2" style={{ color: 'var(--accent-primary)' }}>
-                      🏫 Escola
+                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--accent-primary)' }}>
+                      <School size={15} /> Escola
                     </h3>
                     <LinhaInfo rotulo="Escola" valor={crianca.escola || 'Não informada'} />
                     <LinhaInfo rotulo="Turma" valor={crianca.turma} />
@@ -316,8 +395,8 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-sm mb-2" style={{ color: 'var(--accent-primary)' }}>
-                      🩺 Dados Clínicos
+                    <h3 className="font-semibold text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--accent-primary)' }}>
+                      <Stethoscope size={15} /> Dados Clínicos
                     </h3>
                     <LinhaInfo rotulo="Diagnósticos" valor={crianca.diagnosticos.join(', ') || 'Nenhum informado'} />
                     <LinhaInfo rotulo="CIDs" valor={crianca.cids.join(', ')} />

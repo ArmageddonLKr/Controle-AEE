@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTema } from "@/lib/theme";
-import { Sun, Moon, Info, Smartphone, Heart, Palette, RotateCcw, Cloud, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Sun, Moon, Info, Smartphone, Palette, RotateCcw, Cloud, RefreshCw, CheckCircle2 } from "lucide-react";
 import { puxarDaNuvem } from "@/lib/sync";
 
 // Cartão de sincronização — mostra status e permite forçar uma atualização.
@@ -133,6 +133,18 @@ const CORES_DESTAQUE = [
   { nome: "Índigo",    cor: "#6366F1" },
 ];
 
+// Cores sugeridas para a barra de navegação (a parte azul do menu).
+// A Rafaela também pode escolher qualquer outra cor pelo seletor livre.
+const CORES_NAV = [
+  { nome: "Azul-petróleo", cor: "#1E3A5F" },
+  { nome: "Grafite",       cor: "#1F2933" },
+  { nome: "Roxo escuro",   cor: "#2E1A47" },
+  { nome: "Verde-musgo",   cor: "#14302A" },
+  { nome: "Vinho",         cor: "#3A1721" },
+  { nome: "Rosa suave",    cor: "#F3D5E0" },
+  { nome: "Azul claro",    cor: "#D6E6F5" },
+];
+
 function BolinhaDeCor({
   cor,
   nome,
@@ -170,8 +182,10 @@ function SeletorDeCores() {
   const {
     corDestaque,
     corTexto,
+    corNav,
     definirCorDestaque,
     definirCorTexto,
+    definirCorNav,
     restaurarCoresPadrao,
   } = useTema();
 
@@ -273,8 +287,37 @@ function SeletorDeCores() {
         </span>
       </div>
 
+      {/* Cor da barra de navegação (a parte azul do menu) */}
+      <p style={rotuloPequeno}>Cor da barra de navegação</p>
+      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "-0.375rem", marginBottom: "0.625rem" }}>
+        Muda a cor do menu lateral e da barra inferior. O texto se ajusta sozinho para continuar legível.
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.625rem", alignItems: "center", marginBottom: "1.25rem" }}>
+        <button onClick={() => definirCorNav(null)} style={chipPadrao(corNav === null)}>
+          Padrão
+        </button>
+        {CORES_NAV.map((c) => (
+          <BolinhaDeCor
+            key={c.cor}
+            cor={c.cor}
+            nome={c.nome}
+            ativa={corNav?.toLowerCase() === c.cor.toLowerCase()}
+            onClick={() => definirCorNav(c.cor)}
+          />
+        ))}
+        {/* Seletor livre — qualquer cor */}
+        <input
+          type="color"
+          value={corNav ?? "#1E3A5F"}
+          onChange={(e) => definirCorNav(e.target.value)}
+          title="Escolher qualquer cor para a barra"
+          aria-label="Escolher qualquer cor para a barra de navegação"
+          style={seletorLivre}
+        />
+      </div>
+
       {/* Restaurar tudo */}
-      {(corDestaque !== null || corTexto !== null) && (
+      {(corDestaque !== null || corTexto !== null || corNav !== null) && (
         <button
           onClick={restaurarCoresPadrao}
           style={{
@@ -624,21 +667,6 @@ export default function ConfiguracoesPage() {
                 e de acessibilidade, que eliminem as barreiras para a plena participação dos estudantes,
                 considerando as suas necessidades específicas (Decreto 7.611/2011).
               </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.375rem",
-                  fontSize: "0.75rem",
-                  color: "var(--text-muted)",
-                }}
-              >
-                <Heart size={13} color="var(--danger)" />
-                <span>
-                  Desenvolvido por <strong>Rayan</strong>, com cuidado, para Rafaela Dias — Psicóloga AEE
-                </span>
-              </div>
             </div>
           </div>
         </div>
