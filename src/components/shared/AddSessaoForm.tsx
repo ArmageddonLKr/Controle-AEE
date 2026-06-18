@@ -25,14 +25,13 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { addSessao } from '@/lib/storage';
+import { hojeISO } from '@/lib/utils/date';
 import type { Sessao } from '@/types';
 
 interface AddSessaoFormProps {
   criancaId: string;
   onSessaoAdded?: () => void;
 }
-
-const hojeISO = () => new Date().toISOString().split('T')[0];
 
 export default function AddSessaoForm({ criancaId, onSessaoAdded }: AddSessaoFormProps) {
   const { toast } = useToast();

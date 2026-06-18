@@ -15,6 +15,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Crianca, Sessao, Evolucao } from "@/types";
+import { parseDataLocal } from "./date";
 
 const AZUL_PETROLEO = "1E3A5F";
 const AZUL_CLARO = "E0F4F8";
@@ -101,7 +102,7 @@ export async function exportarRelatorioAtendimentosDocx(
       linhaTabela(["Data", "Criança", "Tipo", "Duração", "Presença"], true),
       ...sessoes.map((s) =>
         linhaTabela([
-          format(new Date(s.data), "dd/MM/yyyy", { locale: ptBR }),
+          format(parseDataLocal(s.data), "dd/MM/yyyy", { locale: ptBR }),
           criancasMap[s.criancaId] ?? s.criancaId,
           s.tipo,
           `${s.duracao} min`,
@@ -164,7 +165,7 @@ export async function exportarFichaCriancaDocx(
       linhaTabela(["Data", "Tipo", "Duração", "Presença", "Anotações"], true),
       ...sessoes.map((s) =>
         linhaTabela([
-          format(new Date(s.data), "dd/MM/yyyy", { locale: ptBR }),
+          format(parseDataLocal(s.data), "dd/MM/yyyy", { locale: ptBR }),
           s.tipo,
           `${s.duracao} min`,
           s.presente ? "✓ Presente" : `✗ Falta`,
@@ -196,7 +197,7 @@ export async function exportarFichaCriancaDocx(
           new Paragraph({
             children: [
               new TextRun({
-                text: `Status: ${crianca.status} | Início do acompanhamento: ${format(new Date(crianca.dataInicioAcompanhamento), "dd/MM/yyyy", { locale: ptBR })}`,
+                text: `Status: ${crianca.status} | Início do acompanhamento: ${format(parseDataLocal(crianca.dataInicioAcompanhamento), "dd/MM/yyyy", { locale: ptBR })}`,
                 size: 20,
               }),
             ],

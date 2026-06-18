@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { addEvolucao } from '@/lib/storage';
+import { hojeISO } from '@/lib/utils/date';
 
 interface AddEvolucaoFormProps {
   criancaId: string;
@@ -53,7 +54,7 @@ export default function AddEvolucaoForm({ criancaId }: AddEvolucaoFormProps) {
 
     addEvolucao({
       criancaId,
-      data: new Date().toISOString().split('T')[0],
+      data: hojeISO(),
       periodo: periodo.trim(),
       descricao: descricao.trim(),
       areas: areas ? areas.split(',').map((a) => a.trim()).filter(Boolean) : [],

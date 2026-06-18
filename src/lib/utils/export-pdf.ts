@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Crianca, Sessao, Evolucao } from "@/types";
+import { parseDataLocal } from "./date";
 
 export interface ColunaExport {
   header: string;
@@ -100,7 +101,7 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
   doc.setTextColor(74, 96, 128);
   doc.text(`${crianca.escola} — ${crianca.turma} | Turno: ${crianca.turno}`, 14, 42);
   doc.text(`Diagnóstico(s): ${crianca.diagnosticos.join(", ")}`, 14, 49);
-  doc.text(`Status: ${crianca.status} | Início: ${format(new Date(crianca.dataInicioAcompanhamento), "dd/MM/yyyy", { locale: ptBR })}`, 14, 56);
+  doc.text(`Status: ${crianca.status} | Início: ${format(parseDataLocal(crianca.dataInicioAcompanhamento), "dd/MM/yyyy", { locale: ptBR })}`, 14, 56);
 
   // Tabela de sessões
   doc.setFontSize(11);
@@ -109,7 +110,7 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
   doc.text("Histórico de Sessões", 14, 68);
 
   const linhasSessoes = sessoes.map((s) => ({
-    data: format(new Date(s.data), "dd/MM/yyyy", { locale: ptBR }),
+    data: format(parseDataLocal(s.data), "dd/MM/yyyy", { locale: ptBR }),
     tipo: s.tipo,
     duracao: `${s.duracao} min`,
     presenca: s.presente ? "Presente" : `Falta${s.motivoFalta ? ` (${s.motivoFalta})` : ""}`,

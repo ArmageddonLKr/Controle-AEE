@@ -12,9 +12,9 @@ import { DialogFooter } from '@/components/ui/dialog';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { useCriancas } from '@/hooks/useAlunos';
+import { hojeISO } from '@/lib/utils/date';
 import type { Reuniao } from '@/types';
-
-const hojeISO = () => new Date().toISOString().split('T')[0];
 
 export default function FormReuniao({
   inicial,
@@ -38,13 +38,28 @@ export default function FormReuniao({
   const [anotacoes, setAnotacoes] = useState(inicial?.anotacoes ?? '');
   const [erro, setErro] = useState('');
 
+  // Crianças vinculadas — começam pelas já vinculadas + a criança fixa (se houver)
+  const { criancas } = useCriancas();
+  const [relacionadas, setRelacionadas] = useState<string[]>(() => {
+    const base = new Set(inicial?.criancasRelacionadas ?? []);
+    if (criancaIdFixa) base.add(criancaIdFixa);
+    return Array.from(base);
+  });
+
+  function alternarCrianca(id: string) {
+    if (id === criancaIdFixa) return; // a criança fixa não pode ser desvinculada aqui
+    setRelacionadas((atual) =>
+      atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id]
+    );
+  }
+
   function handleSalvar() {
     if (!titulo.trim()) { setErro('Informe o título da reunião.'); return; }
     if (!data) { setErro('Informe a data.'); return; }
 
-    // Mantém os vínculos existentes e garante a criança fixa (quando houver)
-    const relacionadas = new Set(inicial?.criancasRelacionadas ?? []);
-    if (criancaIdFixa) relacionadas.add(criancaIdFixa);
+    // Mantém os vínculos escolhidos e garante a criança fixa (quando houver)
+    const finais = new Set(relacionadas);
+    if (criancaIdFixa) finais.add(criancaIdFixa);
 
     onSalvar({
       data,
@@ -55,7 +70,7 @@ export default function FormReuniao({
       participantes: participantes.split(',').map((p) => p.trim()).filter(Boolean),
       local: local.trim(),
       anotacoes: anotacoes.trim(),
-      ...(relacionadas.size > 0 ? { criancasRelacionadas: Array.from(relacionadas) } : {}),
+      ...(finais.size > 0 ? { criancasRelacionadas: Array.from(finais) } : {}),
     });
   }
 
@@ -94,6 +109,42 @@ export default function FormReuniao({
           </Select>
         </div>
       </div>
+      {/* Crianças relacionadas — conecta a reunião aos perfis das crianças */}
+      {criancas.length > 0 && (
+        <div>
+          <Label>Crianças relacionadas</Label>
+          <p className="text-xs mt-0.5 mb-2" style={{ color: 'var(--text-muted)' }}>
+            Vincule esta reunião a uma ou mais crianças. Ela aparecerá na aba
+            &ldquo;Reuniões&rdquo; do perfil de cada uma.
+          </p>
+          <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+            {criancas.map((c) => {
+              const ativo = relacionadas.includes(c.id);
+              const fixa = c.id === criancaIdFixa;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => alternarCrianca(c.id)}
+                  disabled={fixa}
+                  title={fixa ? 'Reunião do perfil desta criança' : undefined}
+                  className="text-xs font-medium rounded-full px-2.5 py-1 transition-all"
+                  style={{
+                    border: ativo ? '1px solid var(--accent-primary)' : '1px solid var(--border)',
+                    background: ativo ? 'var(--accent-light)' : 'transparent',
+                    color: ativo ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    cursor: fixa ? 'default' : 'pointer',
+                    opacity: fixa ? 0.85 : 1,
+                  }}
+                >
+                  {ativo ? '✓ ' : ''}{c.nome.split(' ')[0]}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div>
         <Label htmlFor="r-participantes">Participantes (separados por vírgula)</Label>
         <Input id="r-participantes" value={participantes}

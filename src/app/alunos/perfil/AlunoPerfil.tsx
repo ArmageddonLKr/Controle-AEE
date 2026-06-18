@@ -33,6 +33,7 @@ import FormReuniao from '@/components/shared/ReuniaoForm';
 import CardReuniao from '@/components/shared/ReuniaoCard';
 import { exportarFichaCriancaPDF } from '@/lib/utils/export-pdf';
 import { exportarFichaCriancaDocx } from '@/lib/utils/export-docx';
+import { parseDataLocal } from '@/lib/utils/date';
 import type { Reuniao } from '@/types';
 
 const STATUS_LABEL = { ativo: 'Ativo', espera: 'Em espera', inativo: 'Inativo' } as const;
@@ -93,7 +94,7 @@ export default function AlunoPerfil({ id }: { id?: string }) {
   if (loading) return <Carregando />;
   if (!crianca) return <NaoEncontrada />;
 
-  const idade = differenceInYears(new Date(), new Date(crianca.dataNascimento));
+  const idade = differenceInYears(new Date(), parseDataLocal(crianca.dataNascimento));
   const presentes = sessoes.filter((s) => s.presente).length;
   const taxaPresenca = sessoes.length > 0 ? Math.round((presentes / sessoes.length) * 100) : null;
   const sessoesOrdenadas = [...sessoes].sort(
@@ -153,7 +154,7 @@ export default function AlunoPerfil({ id }: { id?: string }) {
               <LinhaInfo rotulo="Idade" valor={`${idade} ${idade === 1 ? 'ano' : 'anos'}`} />
               <LinhaInfo
                 rotulo="Nascimento"
-                valor={format(new Date(crianca.dataNascimento), 'dd/MM/yyyy', { locale: ptBR })}
+                valor={format(parseDataLocal(crianca.dataNascimento), 'dd/MM/yyyy', { locale: ptBR })}
               />
               <LinhaInfo rotulo="Escola" valor={crianca.escola} />
               <LinhaInfo rotulo="Turma" valor={crianca.turma} />
@@ -161,7 +162,7 @@ export default function AlunoPerfil({ id }: { id?: string }) {
               <LinhaInfo rotulo="Turno" valor={crianca.turno ? TURNO_LABEL[crianca.turno] : undefined} />
               <LinhaInfo
                 rotulo="Início do acompanhamento"
-                valor={format(new Date(crianca.dataInicioAcompanhamento), 'dd/MM/yyyy', { locale: ptBR })}
+                valor={format(parseDataLocal(crianca.dataInicioAcompanhamento), 'dd/MM/yyyy', { locale: ptBR })}
               />
 
               {crianca.diagnosticos.length > 0 && (
@@ -277,7 +278,7 @@ export default function AlunoPerfil({ id }: { id?: string }) {
                                 {ev.periodo}
                               </p>
                               <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                                {format(new Date(ev.data), 'dd/MM/yyyy', { locale: ptBR })}
+                                {format(parseDataLocal(ev.data), 'dd/MM/yyyy', { locale: ptBR })}
                               </p>
                             </div>
                             <div className="flex items-center gap-0.5">

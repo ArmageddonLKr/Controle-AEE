@@ -5,6 +5,7 @@ import { Download, Search, Loader2 } from "lucide-react";
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useCriancas, useTodasSessoes } from "@/hooks/useAlunos";
+import { parseDataLocal } from "@/lib/utils/date";
 import type { Sessao } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -73,13 +74,13 @@ export default function RelatoriosPage() {
   // ---- Intervalo efetivo ----
   const intervalo = useMemo(() => {
     if (preset !== "custom") return getIntervaloPreset(preset);
-    return { inicio: new Date(dataInicio), fim: new Date(dataFim) };
+    return { inicio: parseDataLocal(dataInicio), fim: parseDataLocal(dataFim) };
   }, [preset, dataInicio, dataFim]);
 
   // ---- Sessões filtradas ----
   const sessoesFiltradas = useMemo(() => {
     return sessoes.filter((s) => {
-      const data = new Date(s.data);
+      const data = parseDataLocal(s.data);
       if (!isWithinInterval(data, { start: intervalo.inicio, end: intervalo.fim })) return false;
       if (criancaFiltro !== "todas" && s.criancaId !== criancaFiltro) return false;
       if (tipoFiltro !== "Todos" && s.tipo !== tipoFiltro) return false;
@@ -313,7 +314,7 @@ export default function RelatoriosPage() {
                     }}
                   >
                     <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>
-                      {format(new Date(sessao.data), "dd/MM/yyyy")}
+                      {format(parseDataLocal(sessao.data), "dd/MM/yyyy")}
                     </td>
                     <td className="px-4 py-3" style={{ color: "var(--text-primary)" }}>
                       {getNomeCrianca(sessao.criancaId, nomesPorId).split(" ").slice(0, 2).join(" ")}
