@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controle-aee-v7';
+const CACHE_NAME = 'controle-aee-v8';
 const urlsToCache = [
   '/Controle-AEE/',
   '/Controle-AEE/alunos/',
