@@ -12,6 +12,7 @@ interface CoresPrefs {
   corDestaque: string | null; // hex (ex.: "#EC4899") ou null = padrão do tema
   corTexto: string | null;    // hex ou null = padrão do tema
   corNav: string | null;      // cor da barra de navegação (sidebar/bottom-nav) ou null = padrão
+  corCards: string | null;    // cor dos cards do Início (todos juntos) ou null = cores variadas padrão
 }
 
 interface TemaContexto {
@@ -20,9 +21,11 @@ interface TemaContexto {
   corDestaque: string | null;
   corTexto: string | null;
   corNav: string | null;
+  corCards: string | null;
   definirCorDestaque: (cor: string | null) => void;
   definirCorTexto: (cor: string | null) => void;
   definirCorNav: (cor: string | null) => void;
+  definirCorCards: (cor: string | null) => void;
   restaurarCoresPadrao: () => void;
 }
 
@@ -32,9 +35,11 @@ const TemaContexto = createContext<TemaContexto>({
   corDestaque: null,
   corTexto: null,
   corNav: null,
+  corCards: null,
   definirCorDestaque: () => {},
   definirCorTexto: () => {},
   definirCorNav: () => {},
+  definirCorCards: () => {},
   restaurarCoresPadrao: () => {},
 });
 
@@ -128,17 +133,18 @@ function lerCoresSalvas(): CoresPrefs {
         corDestaque: typeof dados.corDestaque === "string" ? dados.corDestaque : null,
         corTexto: typeof dados.corTexto === "string" ? dados.corTexto : null,
         corNav: typeof dados.corNav === "string" ? dados.corNav : null,
+        corCards: typeof dados.corCards === "string" ? dados.corCards : null,
       };
     }
   } catch {
     // preferências corrompidas — volta ao padrão
   }
-  return { corDestaque: null, corTexto: null, corNav: null };
+  return { corDestaque: null, corTexto: null, corNav: null, corCards: null };
 }
 
 export function TemaProvider({ children }: { children: React.ReactNode }) {
   const [tema, setTema] = useState<Tema>("claro");
-  const [cores, setCores] = useState<CoresPrefs>({ corDestaque: null, corTexto: null, corNav: null });
+  const [cores, setCores] = useState<CoresPrefs>({ corDestaque: null, corTexto: null, corNav: null, corCards: null });
 
   useEffect(() => {
     const temaSalvo = localStorage.getItem(CHAVE_TEMA) as Tema | null;
@@ -204,8 +210,13 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
     [salvarCores]
   );
 
+  const definirCorCards = useCallback(
+    (cor: string | null) => salvarCores({ ...lerCoresSalvas(), corCards: cor }),
+    [salvarCores]
+  );
+
   const restaurarCoresPadrao = useCallback(
-    () => salvarCores({ corDestaque: null, corTexto: null, corNav: null }),
+    () => salvarCores({ corDestaque: null, corTexto: null, corNav: null, corCards: null }),
     [salvarCores]
   );
 
@@ -217,9 +228,11 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
         corDestaque: cores.corDestaque,
         corTexto: cores.corTexto,
         corNav: cores.corNav,
+        corCards: cores.corCards,
         definirCorDestaque,
         definirCorTexto,
         definirCorNav,
+        definirCorCards,
         restaurarCoresPadrao,
       }}
     >

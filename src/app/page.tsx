@@ -98,6 +98,9 @@ export default function Dashboard() {
         <StatCard titulo="Aniversários (7 dias)"  valor={aniversariosProximos.length} icone={<Star     size={20} />} cor="ambar" />
         <StatCard titulo="Total de sessões"        valor={sessoes.length}             icone={<Clock    size={20} />} cor="roxo"  />
       </div>
+      <p className="text-xs -mt-1" style={{ color: "var(--text-muted)" }}>
+        Dica: segure o dedo em um card para mudar a cor de todos.
+      </p>
 
       {/* ── Estado vazio — sem dados ainda ── */}
       {!loading && !temDados && (

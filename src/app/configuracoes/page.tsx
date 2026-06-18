@@ -183,6 +183,7 @@ function SeletorDeCores() {
     corDestaque,
     corTexto,
     corNav,
+    corCards,
     definirCorDestaque,
     definirCorTexto,
     definirCorNav,
@@ -317,7 +318,7 @@ function SeletorDeCores() {
       </div>
 
       {/* Restaurar tudo */}
-      {(corDestaque !== null || corTexto !== null || corNav !== null) && (
+      {(corDestaque !== null || corTexto !== null || corNav !== null || corCards !== null) && (
         <button
           onClick={restaurarCoresPadrao}
           style={{
