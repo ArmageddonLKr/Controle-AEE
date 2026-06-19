@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Download, Search, Loader2 } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { format, isWithinInterval, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useCriancas, useTodasSessoes } from "@/hooks/useAlunos";
 import { parseDataLocal } from "@/lib/utils/date";
+import { ExportButton } from "@/components/shared/ExportButton";
+import { exportarRelatorioAtendimentosPDF } from "@/lib/utils/export-pdf";
+import { exportarRelatorioAtendimentosDocx } from "@/lib/utils/export-docx";
 import type { Sessao } from "@/types";
 
 // ---------------------------------------------------------------------------
@@ -250,7 +254,7 @@ export default function RelatoriosPage() {
       </div>
 
       {/* ---- Cards de resumo ---- */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total de sessões", valor: sessoesFiltradas.length, cor: "var(--accent-primary)" },
           { label: "Taxa de presença", valor: `${taxaPresenca}%`, cor: "#2ECC8E" },
@@ -269,25 +273,54 @@ export default function RelatoriosPage() {
       {/* ---- Tabela de resultados ---- */}
       <div className="card-aee overflow-hidden">
         <div
-          className="flex items-center justify-between px-5 py-4"
+          className="flex items-center justify-between flex-wrap gap-2 px-5 py-4"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <h3 className="font-semibold text-sm" style={{ color: "var(--text-secondary)" }}>
             {sessoesFiltradas.length} registro{sessoesFiltradas.length !== 1 ? "s" : ""} encontrado{sessoesFiltradas.length !== 1 ? "s" : ""}
           </h3>
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
-            style={{
-              background: "var(--accent-primary)",
-              color: "white",
-              opacity: sessoesFiltradas.length === 0 ? 0.5 : 1,
-            }}
+          <ExportButton
             disabled={sessoesFiltradas.length === 0}
-            title="Exportação disponível em breve"
-          >
-            <Download size={14} />
-            Exportar PDF
-          </button>
+            opcoes={[
+              {
+                label: "Exportar PDF",
+                formato: "pdf",
+                onExportar: () =>
+                  exportarRelatorioAtendimentosPDF(
+                    "Relatório de Atendimentos",
+                    `Período: ${format(intervalo.inicio, "dd/MM/yyyy")} a ${format(intervalo.fim, "dd/MM/yyyy")}`,
+                    [
+                      { header: "Data", dataKey: "data" },
+                      { header: "Criança", dataKey: "crianca" },
+                      { header: "Tipo", dataKey: "tipo" },
+                      { header: "Duração", dataKey: "duracao" },
+                      { header: "Presença", dataKey: "presenca" },
+                      { header: "Anotações", dataKey: "anotacoes" },
+                    ],
+                    sessoesFiltradas.map((s) => ({
+                      data: format(parseDataLocal(s.data), "dd/MM/yyyy"),
+                      crianca: getNomeCrianca(s.criancaId, nomesPorId),
+                      tipo: TIPO_LABEL[s.tipo],
+                      duracao: `${s.duracao} min`,
+                      presenca: s.presente ? "Presente" : "Falta",
+                      anotacoes: s.anotacoes,
+                    })),
+                    "relatorio_atendimentos"
+                  ),
+              },
+              {
+                label: "Exportar Word",
+                formato: "word",
+                onExportar: () =>
+                  exportarRelatorioAtendimentosDocx(
+                    "Relatório de Atendimentos",
+                    `${format(intervalo.inicio, "dd/MM/yyyy")} a ${format(intervalo.fim, "dd/MM/yyyy")}`,
+                    sessoesFiltradas,
+                    Object.fromEntries(nomesPorId)
+                  ),
+              },
+            ]}
+          />
         </div>
 
         {sessoesFiltradas.length === 0 ? (

@@ -135,6 +135,56 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
     margin: { left: 14, right: 14 },
   });
 
+  // Registros de evolução
+  let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
+  const alturaPagina = doc.internal.pageSize.height;
+
+  if (y > alturaPagina - 30) {
+    doc.addPage();
+    y = 20;
+  }
+
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(26, 43, 69);
+  doc.text("Registros de Evolução", 14, y);
+  y += 7;
+
+  if (evolucoes.length === 0) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(143, 163, 188);
+    doc.text("Nenhum registro de evolução.", 14, y);
+  } else {
+    evolucoes.forEach((ev) => {
+      if (y > alturaPagina - 35) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 58, 95);
+      doc.text(`${ev.periodo} — ${format(parseDataLocal(ev.data), "dd/MM/yyyy", { locale: ptBR })}`, 14, y);
+      y += 6;
+
+      if (ev.areas.length > 0) {
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "italic");
+        doc.setTextColor(74, 96, 128);
+        doc.text(`Áreas: ${ev.areas.join(", ")}`, 14, y);
+        y += 5;
+      }
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(26, 43, 69);
+      const linhasDescricao = doc.splitTextToSize(ev.descricao, 180);
+      doc.text(linhasDescricao, 14, y);
+      y += linhasDescricao.length * 5 + 8;
+    });
+  }
+
   const nomeArquivo = crianca.nome.replace(/\s+/g, "_");
   doc.save(`ficha_${nomeArquivo}.pdf`);
 }
