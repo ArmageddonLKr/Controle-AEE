@@ -271,9 +271,11 @@ export default function RelatoriosPage() {
       </div>
 
       {/* ---- Tabela de resultados ---- */}
-      <div className="card-aee overflow-hidden">
+      {/* Nota: overflow-hidden vai só nas seções abaixo (não no card todo),
+          senão corta o menu de exportar (posicionado "absolute") junto com a tabela. */}
+      <div className="card-aee">
         <div
-          className="flex items-center justify-between flex-wrap gap-2 px-5 py-4"
+          className="flex items-center justify-between flex-wrap gap-2 px-5 py-4 rounded-t-xl"
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <h3 className="font-semibold text-sm" style={{ color: "var(--text-secondary)" }}>
@@ -324,7 +326,7 @@ export default function RelatoriosPage() {
         </div>
 
         {sessoesFiltradas.length === 0 ? (
-          <div className="p-12 text-center">
+          <div className="p-12 text-center rounded-b-xl overflow-hidden">
             <p style={{ color: "var(--text-muted)" }}>
               {sessoes.length === 0
                 ? "Nenhuma sessão cadastrada ainda. Registre atendimentos no perfil de cada criança."
@@ -332,7 +334,7 @@ export default function RelatoriosPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-b-xl">
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: "var(--bg-primary)", borderBottom: "1px solid var(--border)" }}>
