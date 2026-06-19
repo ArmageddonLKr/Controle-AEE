@@ -50,11 +50,11 @@ export function ExportButton({ opcoes, disabled = false }: ExportButtonProps) {
         <>
           {/* Overlay para fechar */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-[60]"
             onClick={() => setAberto(false)}
           />
           <div
-            className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg z-20 overflow-hidden"
+            className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg z-[61] overflow-hidden"
             style={{
               backgroundColor: "var(--bg-card)",
               border: "1px solid var(--border)",
