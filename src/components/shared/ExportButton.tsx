@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Download, FileText, FileSpreadsheet, ChevronDown } from "lucide-react";
 
 interface OpcaoExport {
@@ -14,9 +14,29 @@ interface ExportButtonProps {
   disabled?: boolean;
 }
 
+// Altura aproximada de cada item do menu + reserva de segurança para a
+// barra de navegação inferior do mobile, que fica sobre a área visível.
+const ALTURA_POR_ITEM = 48;
+const RESERVA_INFERIOR = 96;
+
 export function ExportButton({ opcoes, disabled = false }: ExportButtonProps) {
   const [aberto, setAberto] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const [abrirParaCima, setAbrirParaCima] = useState(false);
+  const botaoRef = useRef<HTMLButtonElement>(null);
+
+  function handleAbrir() {
+    if (disabled || estaCarregando) return;
+
+    if (!aberto && botaoRef.current) {
+      const rect = botaoRef.current.getBoundingClientRect();
+      const espacoAbaixo = window.innerHeight - rect.bottom;
+      const espacoNecessario = opcoes.length * ALTURA_POR_ITEM + RESERVA_INFERIOR;
+      setAbrirParaCima(espacoAbaixo < espacoNecessario);
+    }
+
+    setAberto((valor) => !valor);
+  }
 
   async function handleExportar(opcao: OpcaoExport) {
     setLoading(opcao.formato);
@@ -33,7 +53,8 @@ export function ExportButton({ opcoes, disabled = false }: ExportButtonProps) {
   return (
     <div className="relative">
       <button
-        onClick={() => !disabled && !estaCarregando && setAberto(!aberto)}
+        ref={botaoRef}
+        onClick={handleAbrir}
         disabled={disabled || estaCarregando}
         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         style={{
@@ -54,7 +75,9 @@ export function ExportButton({ opcoes, disabled = false }: ExportButtonProps) {
             onClick={() => setAberto(false)}
           />
           <div
-            className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg z-[61] overflow-hidden"
+            className={`absolute right-0 w-48 rounded-xl shadow-lg z-[61] overflow-hidden ${
+              abrirParaCima ? "bottom-full mb-2" : "top-full mt-2"
+            }`}
             style={{
               backgroundColor: "var(--bg-card)",
               border: "1px solid var(--border)",

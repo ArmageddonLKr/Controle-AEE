@@ -100,7 +100,7 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
   doc.setFont("helvetica", "normal");
   doc.setTextColor(74, 96, 128);
   doc.text(`${crianca.escola} — ${crianca.turma} | Turno: ${crianca.turno}`, 14, 42);
-  doc.text(`Diagnóstico(s): ${crianca.diagnosticos.join(", ")}`, 14, 49);
+  doc.text(`Diagnóstico(s): ${crianca.diagnosticos.length > 0 ? crianca.diagnosticos.join(", ") : "-"}`, 14, 49);
   doc.text(`Status: ${crianca.status} | Início: ${format(parseDataLocal(crianca.dataInicioAcompanhamento), "dd/MM/yyyy", { locale: ptBR })}`, 14, 56);
 
   // Tabela de sessões
@@ -109,35 +109,46 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
   doc.setTextColor(26, 43, 69);
   doc.text("Histórico de Sessões", 14, 68);
 
-  const linhasSessoes = sessoes.map((s) => ({
-    data: format(parseDataLocal(s.data), "dd/MM/yyyy", { locale: ptBR }),
-    tipo: s.tipo,
-    duracao: `${s.duracao} min`,
-    presenca: s.presente ? "Presente" : `Falta${s.motivoFalta ? ` (${s.motivoFalta})` : ""}`,
-    anotacoes: s.anotacoes.substring(0, 80) + (s.anotacoes.length > 80 ? "..." : ""),
-  }));
+  const alturaPagina = doc.internal.pageSize.height;
+  let y: number;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  autoTable(doc, {
-    startY: 72,
-    columns: [
-      { header: "Data", dataKey: "data" },
-      { header: "Tipo", dataKey: "tipo" },
-      { header: "Duração", dataKey: "duracao" },
-      { header: "Presença", dataKey: "presenca" },
-      { header: "Anotações", dataKey: "anotacoes" },
-    ],
-    body: linhasSessoes as any,
-    headStyles: { fillColor: [30, 58, 95], textColor: 255, fontSize: 8 },
-    alternateRowStyles: { fillColor: [240, 247, 255] },
-    styles: { fontSize: 7, cellPadding: 2, textColor: [26, 43, 69] },
-    columnStyles: { anotacoes: { cellWidth: 80 } },
-    margin: { left: 14, right: 14 },
-  });
+  if (sessoes.length === 0) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(143, 163, 188);
+    doc.text("Nenhuma sessão registrada.", 14, 76);
+    y = 76 + 12;
+  } else {
+    const linhasSessoes = sessoes.map((s) => ({
+      data: format(parseDataLocal(s.data), "dd/MM/yyyy", { locale: ptBR }),
+      tipo: s.tipo,
+      duracao: `${s.duracao} min`,
+      presenca: s.presente ? "Presente" : `Falta${s.motivoFalta ? ` (${s.motivoFalta})` : ""}`,
+      anotacoes: s.anotacoes.trim() ? s.anotacoes.substring(0, 80) + (s.anotacoes.length > 80 ? "..." : "") : "-",
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    autoTable(doc, {
+      startY: 72,
+      columns: [
+        { header: "Data", dataKey: "data" },
+        { header: "Tipo", dataKey: "tipo" },
+        { header: "Duração", dataKey: "duracao" },
+        { header: "Presença", dataKey: "presenca" },
+        { header: "Anotações", dataKey: "anotacoes" },
+      ],
+      body: linhasSessoes as any,
+      headStyles: { fillColor: [30, 58, 95], textColor: 255, fontSize: 8 },
+      alternateRowStyles: { fillColor: [240, 247, 255] },
+      styles: { fontSize: 7, cellPadding: 2, textColor: [26, 43, 69] },
+      columnStyles: { anotacoes: { cellWidth: 80 } },
+      margin: { left: 14, right: 14 },
+    });
+
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
+  }
 
   // Registros de evolução
-  let y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
-  const alturaPagina = doc.internal.pageSize.height;
 
   if (y > alturaPagina - 30) {
     doc.addPage();
@@ -168,18 +179,16 @@ export function exportarFichaCriancaPDF(crianca: Crianca, sessoes: Sessao[], evo
       doc.text(`${ev.periodo} — ${format(parseDataLocal(ev.data), "dd/MM/yyyy", { locale: ptBR })}`, 14, y);
       y += 6;
 
-      if (ev.areas.length > 0) {
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "italic");
-        doc.setTextColor(74, 96, 128);
-        doc.text(`Áreas: ${ev.areas.join(", ")}`, 14, y);
-        y += 5;
-      }
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(74, 96, 128);
+      doc.text(`Áreas: ${ev.areas.length > 0 ? ev.areas.join(", ") : "-"}`, 14, y);
+      y += 5;
 
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(26, 43, 69);
-      const linhasDescricao = doc.splitTextToSize(ev.descricao, 180);
+      const linhasDescricao = doc.splitTextToSize(ev.descricao.trim() ? ev.descricao : "-", 180);
       doc.text(linhasDescricao, 14, y);
       y += linhasDescricao.length * 5 + 8;
     });

@@ -305,7 +305,7 @@ export default function RelatoriosPage() {
                       tipo: TIPO_LABEL[s.tipo],
                       duracao: `${s.duracao} min`,
                       presenca: s.presente ? "Presente" : "Falta",
-                      anotacoes: s.anotacoes,
+                      anotacoes: s.anotacoes.trim() ? s.anotacoes : "-",
                     })),
                     "relatorio_atendimentos"
                   ),
@@ -388,9 +388,9 @@ export default function RelatoriosPage() {
                     <td
                       className="px-4 py-3 max-w-xs truncate"
                       style={{ color: "var(--text-muted)" }}
-                      title={sessao.anotacoes}
+                      title={sessao.anotacoes || "-"}
                     >
-                      {sessao.anotacoes}
+                      {sessao.anotacoes || "-"}
                     </td>
                   </tr>
                 ))}
