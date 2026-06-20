@@ -128,7 +128,15 @@ export async function exportarRelatorioAtendimentosDocx(
             ],
           }),
           new Paragraph({ text: "" }),
-          tabela,
+          ...(sessoes.length === 0
+            ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: "Nenhuma sessão registrada.", size: 18, italics: true, color: "8FA3BC" }),
+                  ],
+                }),
+              ]
+            : [tabela]),
           new Paragraph({ text: "" }),
           new Paragraph({
             children: [
@@ -169,7 +177,7 @@ export async function exportarFichaCriancaDocx(
           s.tipo,
           `${s.duracao} min`,
           s.presente ? "✓ Presente" : `✗ Falta`,
-          s.anotacoes.substring(0, 100) + (s.anotacoes.length > 100 ? "..." : ""),
+          s.anotacoes.trim() ? s.anotacoes.substring(0, 100) + (s.anotacoes.length > 100 ? "..." : "") : "-",
         ])
       ),
     ],
@@ -191,7 +199,10 @@ export async function exportarFichaCriancaDocx(
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `Diagnóstico(s): ${crianca.diagnosticos.join(", ")}`, size: 20 }),
+              new TextRun({
+                text: `Diagnóstico(s): ${crianca.diagnosticos.length > 0 ? crianca.diagnosticos.join(", ") : "-"}`,
+                size: 20,
+              }),
             ],
           }),
           new Paragraph({
@@ -205,33 +216,49 @@ export async function exportarFichaCriancaDocx(
           new Paragraph({ text: "" }),
           new Paragraph({ text: "Histórico de Sessões", heading: HeadingLevel.HEADING_2 }),
           new Paragraph({ text: "" }),
-          tabelaSessoes,
+          ...(sessoes.length === 0
+            ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: "Nenhuma sessão registrada.", size: 18, italics: true, color: "8FA3BC" }),
+                  ],
+                }),
+              ]
+            : [tabelaSessoes]),
           new Paragraph({ text: "" }),
           new Paragraph({ text: "Registros de Evolução", heading: HeadingLevel.HEADING_2 }),
           new Paragraph({ text: "" }),
-          ...evolucoes.flatMap((e) => [
-            new Paragraph({
-              children: [
-                new TextRun({ text: `${e.periodo}`, bold: true, size: 22, color: AZUL_PETROLEO }),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({ text: e.descricao, size: 18 }),
-              ],
-            }),
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: `Áreas: ${e.areas.join(", ")}`,
-                  size: 18,
-                  color: "4A6080",
-                  italics: true,
+          ...(evolucoes.length === 0
+            ? [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: "Nenhum registro de evolução.", size: 18, italics: true, color: "8FA3BC" }),
+                  ],
                 }),
-              ],
-            }),
-            new Paragraph({ text: "" }),
-          ]),
+              ]
+            : evolucoes.flatMap((e) => [
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: `${e.periodo}`, bold: true, size: 22, color: AZUL_PETROLEO }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({ text: e.descricao.trim() ? e.descricao : "-", size: 18 }),
+                  ],
+                }),
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: `Áreas: ${e.areas.length > 0 ? e.areas.join(", ") : "-"}`,
+                      size: 18,
+                      color: "4A6080",
+                      italics: true,
+                    }),
+                  ],
+                }),
+                new Paragraph({ text: "" }),
+              ])),
         ],
       },
     ],
